@@ -1,0 +1,3179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>QuizNight</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0e0e10; --surface:#18181c; --s2:#222228; --s3:#2a2a32;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.14);
+  --text:#f0f0ee; --muted:#88888a;
+  --accent:#e8c547; --adim:rgba(232,197,71,0.13); --adim2:rgba(232,197,71,0.24);
+  --green:#4ade80; --gdim:rgba(74,222,128,0.13);
+  --red:#f87171; --rdim:rgba(248,113,113,0.13);
+  --blue:#60a5fa; --bdim:rgba(96,165,250,0.13);
+  --purple:#c084fc; --pdim:rgba(192,132,252,0.13);
+  --orange:#fb923c; --odim:rgba(251,146,60,0.13);
+  --r:10px; --r2:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
+h1,h2,h3,h4{font-family:'Syne',sans-serif}
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.screen.top{justify-content:flex-start;padding-top:24px}
+.logo{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+.logo span{color:var(--accent)}
+.tagline{color:var(--muted);font-size:13px;margin-bottom:32px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:24px;width:100%;max-width:480px}
+.card-wide{max-width:880px}
+.card-title{font-size:17px;font-weight:700;margin-bottom:16px;font-family:'Syne',sans-serif}
+input[type=text],input[type=number],input[type=url],textarea,select{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s;margin-bottom:10px}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+select option{background:var(--s2)}
+textarea{resize:vertical;min-height:60px}
+label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 20px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;text-decoration:none;white-space:nowrap}
+.btn:hover{background:var(--s2);border-color:rgba(255,255,255,.22)}
+.btn-primary{background:var(--accent);color:#0e0e10;border-color:var(--accent);font-weight:700}
+.btn-primary:hover{background:#f5d55c;border-color:#f5d55c}
+.btn-sm{padding:6px 13px;font-size:12px}
+.btn-xs{padding:4px 10px;font-size:11px}
+.btn-danger{border-color:var(--red);color:var(--red)}
+.btn-danger:hover{background:var(--rdim)}
+.btn-success{border-color:var(--green);color:var(--green)}
+.btn-success:hover{background:var(--gdim)}
+.btn-full{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.tabs{display:flex;gap:4px;background:var(--s2);padding:4px;border-radius:var(--r);margin-bottom:16px}
+.tab{flex:1;text-align:center;padding:8px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:all .15s}
+.tab.active{background:var(--surface);color:var(--text)}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.4px}
+.badge-accent{background:var(--adim);color:var(--accent)}
+.badge-green{background:var(--gdim);color:var(--green)}
+.badge-red{background:var(--rdim);color:var(--red)}
+.badge-blue{background:var(--bdim);color:var(--blue)}
+.badge-purple{background:var(--pdim);color:var(--purple)}
+.badge-orange{background:var(--odim);color:var(--orange)}
+.badge-gray{background:rgba(255,255,255,.06);color:var(--muted)}
+hr{border:none;border-top:1px solid var(--border);margin:14px 0}
+/* QUESTION BUILDER */
+.qb{background:var(--s2);border-radius:var(--r);padding:14px;margin-bottom:10px;border:1px solid var(--border)}
+.qb-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.qb-num{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:6px}
+.opt-wrap{position:relative}
+.opt-wrap input{padding-right:34px;margin-bottom:0}
+.ck{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .15s;background:transparent}
+.ck.on{background:var(--green);border-color:var(--green);color:#000}
+/* PLAYER LIST */
+.player-item{display:flex;align-items:center;justify-content:space-between;background:var(--s2);border-radius:var(--r);padding:10px 14px;border:1px solid var(--border);margin-bottom:7px}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'Syne',sans-serif;background:var(--adim);color:var(--accent);flex-shrink:0}
+/* GAME */
+.game-hdr{width:100%;max-width:820px;display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.prog-dots{display:flex;gap:4px;flex-wrap:wrap}
+.pdot{width:8px;height:8px;border-radius:50%;background:var(--border2)}
+.pdot.done{background:var(--accent)}
+.pdot.cur{background:var(--text)}
+.qcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:28px;width:100%;max-width:820px;margin-bottom:14px}
+.q-text{font-size:20px;font-weight:600;font-family:'Syne',sans-serif;margin-bottom:20px;line-height:1.4}
+.ans-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ans-btn{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:13px 16px;min-height:52px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;text-align:left;transition:all .15s;display:flex;align-items:center;gap:10px}
+.ans-btn:hover:not(:disabled){border-color:var(--accent);background:var(--adim)}
+.ans-btn.sel{border-color:var(--accent);background:var(--adim)}
+.ans-btn.correct{border-color:var(--green);background:var(--gdim)}
+.ans-btn.wrong{border-color:var(--red);background:var(--rdim)}
+.ans-btn:disabled{cursor:not-allowed}
+.ans-letter{width:26px;height:26px;min-width:26px;border-radius:6px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'Syne',sans-serif}
+/* TIMER */
+.timer-ring{position:relative;width:50px;height:50px}
+.timer-ring svg{transform:rotate(-90deg)}
+.timer-ring circle{fill:none;stroke-width:3}
+.tbg{stroke:var(--border2)}
+.tfg{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+.tnum{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:15px;font-weight:700;font-family:'Syne',sans-serif}
+/* RESPONSES */
+.resp-item{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:11px 14px;margin-bottom:7px}
+/* LB */
+.lb-item{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 16px;margin-bottom:8px}
+.lb-rank{font-size:17px;font-weight:800;font-family:'Syne',sans-serif;width:26px;color:var(--muted)}
+.lb-rank.gold{color:var(--accent)}
+.lb-rank.silver{color:#b0b0b0}
+.lb-rank.bronze{color:#cd7f32}
+.lb-score{margin-left:auto;font-weight:700;font-family:'Syne',sans-serif;color:var(--accent)}
+/* ROOM CODE */
+.room-code{font-family:'Syne',sans-serif;font-size:44px;font-weight:800;letter-spacing:8px;color:var(--accent);text-align:center}
+/* WAITING DOTS */
+.wdots span{display:inline-block;animation:blink 1.4s infinite}
+.wdots span:nth-child(2){animation-delay:.2s}
+.wdots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
+/* MEDIA PREVIEW */
+.media-preview{margin:10px 0;border-radius:var(--r);overflow:hidden;background:var(--s3);border:1px solid var(--border)}
+.media-preview img{max-width:100%;max-height:260px;display:block;object-fit:contain;margin:0 auto}
+.media-preview video,.media-preview audio{width:100%;display:block}
+/* HOTSPOT */
+.hs-wrap{position:relative;display:inline-block;max-width:100%;cursor:crosshair}
+.hs-wrap img{max-width:100%;border-radius:var(--r);display:block;user-select:none;pointer-events:none}
+.hs-overlay{position:absolute;top:0;left:0;right:0;bottom:0;border-radius:var(--r)}
+.hs-pin{position:absolute;width:30px;height:30px;border-radius:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;font-size:14px;pointer-events:none;box-shadow:0 0 0 3px rgba(0,0,0,.4)}
+/* SCALE */
+.scale-wrap{padding:8px 0}
+.scale-track{position:relative;height:6px;background:var(--s3);border-radius:3px;margin:28px 12px 8px}
+.scale-fill{position:absolute;left:0;top:0;height:100%;background:var(--accent);border-radius:3px;transition:width .1s}
+.scale-thumb{position:absolute;top:50%;width:28px;height:28px;background:var(--accent);border-radius:50%;transform:translate(-50%,-50%);cursor:grab;border:2px solid var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.4);touch-action:none}
+.scale-val{text-align:center;font-size:22px;font-weight:700;font-family:'Syne',sans-serif;color:var(--accent);margin-top:4px}
+/* SECRET NUMBER */
+.secret-num{font-size:72px;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent);text-align:center;margin:16px 0;text-shadow:0 0 40px rgba(232,197,71,.3)}
+/* PREVIEW MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;backdrop-filter:blur(4px)}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r2);padding:0;width:100%;max-width:700px;max-height:90vh;overflow-y:auto;position:relative}
+.modal-hdr{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--surface);z-index:1;border-radius:var(--r2) var(--r2) 0 0}
+.modal-body{padding:24px}
+/* TYPE CHIPS */
+.type-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.type-chip{padding:5px 12px;border-radius:20px;border:1px solid var(--border2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--muted)}
+.type-chip.on{border-color:var(--accent);background:var(--adim);color:var(--accent)}
+/* NOTIF */
+.notif{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:11px 16px;font-size:13px;font-weight:500;transform:translateY(70px);opacity:0;transition:all .3s;z-index:999;max-width:320px}
+.notif.show{transform:translateY(0);opacity:1}
+/* UTILS */
+.flex{display:flex}.fc{flex-direction:column}.gap4{gap:4px}.gap8{gap:8px}.gap12{gap:12px}.gap16{gap:16px}.jb{justify-content:space-between}.jc{justify-content:center}.ac{align-items:center}.tc{text-align:center}
+.tm{color:var(--muted);font-size:13px}.fw{width:100%}.mt8{margin-top:8px}.mt16{margin-top:16px}.mt24{margin-top:24px}.mb8{margin-bottom:8px}.mb16{margin-bottom:16px}
+.scroll{overflow-y:auto}.scroll::-webkit-scrollbar{width:3px}.scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+/* SECRET THEME MODE */
+.secret-theme-badge{display:inline-block;background:var(--pdim);border:1px solid var(--purple);color:var(--purple);border-radius:var(--r);padding:4px 12px;font-size:12px;font-weight:600;margin-bottom:8px}
+@media(max-width:640px){
+  .ans-grid,.opts-grid{grid-template-columns:1fr}
+  .room-code{font-size:26px;letter-spacing:3px}
+  .qcard{padding:16px}
+  .card{padding:16px}
+  .q-text{font-size:16px;margin-bottom:14px}
+  .game-hdr{flex-wrap:wrap;gap:8px;padding-bottom:10px;margin-bottom:12px}
+  .logo{font-size:16px}
+  .btn{padding:9px 16px;font-size:13px}
+  .btn-sm{padding:5px 10px;font-size:12px}
+  .btn-xs{padding:4px 8px;font-size:11px}
+  .timer-ring,.timer-ring svg{width:42px;height:42px}
+  .tnum{font-size:13px}
+  .secret-num{font-size:48px}
+  .uc-word-reveal{font-size:30px;padding:12px}
+  .bid-input{font-size:26px;width:130px}
+  .ans-btn{padding:11px 12px;font-size:13px}
+  .lb-item{padding:10px 12px;gap:8px}
+  .screen{padding:12px}
+  .screen.top{padding:12px;padding-top:14px}
+  .modal-hdr{flex-wrap:wrap;gap:8px}
+  #sc-setup>div{padding-bottom:20px}
+}
+@media(max-width:400px){
+  .room-code{font-size:22px;letter-spacing:2px}
+  .secret-num{font-size:38px}
+  .q-text{font-size:14px}
+  .ans-btn{font-size:12px}
+}.opts-grid{grid-template-columns:1fr}.room-code{font-size:32px;letter-spacing:4px}}
+</style>
+<script type="module">
+// ===== FIREBASE INIT =====
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue, onChildAdded, off, push, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBMcLhzBn4TTqih_cvskIXynXA94LbcYH8",
+  authDomain: "quiznight-f265f.firebaseapp.com",
+  databaseURL: "https://quiznight-f265f-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "quiznight-f265f",
+  storageBucket: "quiznight-f265f.firebasestorage.app",
+  messagingSenderId: "1064247246251",
+  appId: "1:1064247246251:web:45e8160a6f49630c7466ee"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+window._fbDb = db;
+window._fbRef = ref;
+window._fbSet = set;
+window._fbGet = get;
+window._fbOnValue = onValue;
+window._fbOff = off;
+window._fbOnChildAdded = onChildAdded;
+window._fbPush = push;
+window._fbRemove = remove;
+window._fbReady = true;
+console.log("Firebase ready");
+document.addEventListener('DOMContentLoaded',()=>{
+  const el=document.getElementById('fb-status');
+  if(el){el.textContent='✓ Connecté';el.style.color='var(--green)';setTimeout(()=>el.style.display='none',2000);}
+});
+</script>
+</head>
+<body>
+
+<!-- ===== HOME ===== -->
+<div id="sc-home" class="screen active">
+  <div class="logo">Quiz<span>Night</span></div>
+  <div class="tagline">Le quiz entre amis</div>
+  <div id="fb-status" style="font-size:11px;color:var(--muted);margin-bottom:8px">🔄 Connexion...</div>
+  <div class="tc mb8">
+    <button id="music-toggle-btn" class="btn btn-sm" onclick="toggleMusic()" style="font-size:12px">🔇 Son désactivé</button>
+  </div>
+  <div class="card">
+    <div class="tabs">
+      <div class="tab active" onclick="setTab('join')">Rejoindre</div>
+      <div class="tab" onclick="setTab('host')">Créer une salle</div>
+    </div>
+    <div id="tab-join">
+      <label>Code de la salle</label>
+      <input type="text" id="join-code" placeholder="ex: 7X4K" maxlength="4" style="text-transform:uppercase;font-size:22px;letter-spacing:5px;font-family:'Syne',sans-serif;font-weight:800;text-align:center">
+      <label>Ton pseudo</label>
+      <input type="text" id="join-name" placeholder="Ton pseudo">
+      <div id="join-team-section" style="display:none">
+        <label>Choisir une équipe</label>
+        <div id="join-teams-grid" class="flex gap8" style="flex-wrap:wrap;margin-bottom:10px"></div>
+      </div>
+      <button class="btn btn-primary btn-full mt8" onclick="joinGame()">Rejoindre →</button>
+    </div>
+    <div id="tab-host" style="display:none">
+      <label>Ton pseudo (hôte)</label>
+      <input type="text" id="host-name" placeholder="ex: Sahel">
+      <button class="btn btn-primary btn-full mt8" onclick="goToSetup()">Préparer le quiz →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SETUP ===== -->
+<div id="sc-setup" class="screen top">
+  <div style="width:100%;max-width:880px;margin:0 auto;padding-bottom:40px">
+    <div class="flex jb ac mb16" style="flex-wrap:wrap;gap:10px">
+      <div>
+        <div class="logo" style="font-size:18px;margin-bottom:0">Quiz<span>Night</span></div>
+        <div class="tm">Prépare ton quiz</div>
+      </div>
+      <div class="flex gap8" style="flex-wrap:wrap">
+        <button class="btn btn-sm" onclick="openPreview()">👁 Prévisualiser</button>
+        <button class="btn btn-sm btn-success" onclick="saveCurrentQuiz()">💾 Sauvegarder</button>
+        <button class="btn btn-sm" onclick="importQuizFile()">📂 Importer</button>
+        <button class="btn btn-sm" onclick="exportQuiz()">⬇ Exporter</button>
+        <button class="btn" onclick="goHome()">← Retour</button>
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="flex jb ac" style="margin-bottom:8px;cursor:pointer" onclick="toggleSavedPanel()">
+        <div style="font-size:13px;font-weight:600">📚 Mes quiz sauvegardés <span id="saved-count" class="badge badge-gray">0</span></div>
+        <span id="saved-arrow" class="tm" style="font-size:12px">▼ afficher</span>
+      </div>
+      <div id="saved-quizzes-list" style="display:none"></div>
+    </div>
+
+    <!-- Questions builder -->
+    <!-- Params + Teams grid -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:14px">
+      <div class="card" style="max-width:none">
+        <div class="card-title">Paramètres</div>
+        <label>Temps par question (sec)</label>
+        <input type="number" id="q-timer" value="30" min="5" max="180">
+        <label>Mode correction</label>
+        <select id="correction-mode">
+          <option value="auto">Automatique</option>
+          <option value="manual">Manuel (tu valides tout)</option>
+          <option value="mixed" selected>Mixte (auto QCM, manuel texte/spéciaux)</option>
+        </select>
+        <label>Points par défaut</label>
+        <input type="number" id="q-points" value="100" min="10" max="2000" step="10">
+        <label style="margin-top:8px">Ordre des questions</label>
+        <div class="flex gap8">
+          <button class="btn btn-sm" id="order-seq-btn" onclick="setQuestionOrder('sequential')" style="flex:1;border-color:var(--accent);background:var(--adim);color:var(--accent)">📋 En ordre</button>
+          <button class="btn btn-sm" id="order-rand-btn" onclick="setQuestionOrder('random')" style="flex:1">🔀 Aléatoire</button>
+        </div>
+      </div>
+      <div class="card" style="max-width:none">
+        <div class="card-title">Équipes</div>
+        <div class="flex gap8 mb8">
+          <button class="btn btn-sm" id="tm-no" onclick="setTeamsMode(false)" style="flex:1;border-color:var(--accent);background:var(--adim);color:var(--accent)">Non</button>
+          <button class="btn btn-sm" id="tm-yes" onclick="setTeamsMode(true)" style="flex:1">Oui</button>
+        </div>
+        <div id="tm-cfg" style="display:none">
+          <label>Noms (séparés par virgule)</label>
+          <input type="text" id="teams-names" placeholder="Les Weebs, Les Gamers, Les Autres">
+        </div>
+        <div class="tm mt8" style="font-size:12px;line-height:1.6">Score individuel affiché avec l'équipe.</div>
+      </div>
+    </div>
+
+    <div class="card" style="max-width:none;margin-bottom:14px">
+      <div class="flex jb ac mb16">
+        <div class="card-title" style="margin:0">Questions <span id="q-count-badge" class="badge badge-gray">0</span></div>
+        <div class="flex gap8">
+          <button class="btn btn-sm" onclick="toggleImport()" id="imp-btn">📋 Import texte</button>
+          <button class="btn btn-sm" onclick="openThemesModal()">📚 Thèmes</button>
+          <button class="btn btn-sm" onclick="addQ()">+ Ajouter</button>
+        </div>
+      </div>
+      <!-- Import panel -->
+      <div id="import-panel" style="display:none;background:var(--s3);border-radius:var(--r);padding:14px;margin-bottom:14px;border:1px solid var(--border)">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">Import rapide</div>
+        <div class="tm" style="font-size:12px;margin-bottom:8px;line-height:1.8">
+          <code style="background:var(--bg);padding:1px 5px;border-radius:4px;font-size:11px">QCM | Question ? | A, B, C, D | indice_correct (0,1,2,3)</code><br>
+          <code style="background:var(--bg);padding:1px 5px;border-radius:4px;font-size:11px">OPEN | Question ? | réponse</code><br>
+          <code style="background:var(--bg);padding:1px 5px;border-radius:4px;font-size:11px">VF | Question ? | Vrai</code><br>
+          <code style="background:var(--bg);padding:1px 5px;border-radius:4px;font-size:11px">ECHELLE | Question ? | min | max</code>
+        </div>
+        <textarea id="import-text" rows="5" placeholder="Colle tes questions ici..."></textarea>
+        <div class="flex gap8">
+          <button class="btn btn-primary btn-sm" onclick="importQs()">Importer →</button>
+          <button class="btn btn-sm" onclick="toggleImport()">Annuler</button>
+        </div>
+      </div>
+      <!-- List -->
+      <div id="q-list" class="scroll" style="max-height:700px">
+        <div class="tm tc" style="padding:32px">Aucune question. Clique <strong>+ Ajouter</strong>, utilise l'<strong>Import texte</strong>, ou charge les <strong>Exemples</strong>.</div>
+      </div>
+    </div>
+
+    <div class="flex jc">
+      <button class="btn btn-primary" style="padding:13px 36px;font-size:15px" onclick="createRoom()">Créer la salle →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PREVIEW MODAL ===== -->
+<div id="preview-modal" class="modal-bg" style="display:none">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div>
+        <div style="font-weight:700;font-family:'Syne',sans-serif">Prévisualisation</div>
+        <div class="tm" style="font-size:12px" id="prev-label"></div>
+      </div>
+      <div class="flex gap8">
+        <button class="btn btn-sm" onclick="prevQ(-1)">← Préc.</button>
+        <button class="btn btn-sm" onclick="prevQ(1)">Suiv. →</button>
+        <button class="btn btn-sm btn-danger" onclick="closePreview()">✕ Fermer</button>
+      </div>
+    </div>
+    <div class="modal-body" id="prev-body"></div>
+  </div>
+</div>
+
+<!-- ===== HOST LOBBY ===== -->
+<div id="sc-host-lobby" class="screen top">
+  <div style="width:100%;max-width:820px;margin:0 auto;padding-bottom:32px">
+    <div class="flex jb ac mb16">
+      <div>
+        <div class="logo" style="font-size:18px;margin-bottom:0">Quiz<span>Night</span></div>
+        <div class="tm">Salle d'attente · Hôte</div>
+      </div>
+      <div class="tc">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Code</div>
+        <div id="room-code-display" class="room-code" style="font-size:32px;letter-spacing:5px;margin:2px 0">----</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:14px">
+      <div class="card" style="max-width:none">
+        <div class="flex jb ac mb16">
+          <div class="card-title" style="margin:0">Joueurs <span id="player-count" class="badge badge-accent">0</span></div>
+          <button class="btn btn-xs btn-danger" onclick="kickAll()">Vider</button>
+        </div>
+        <div id="lobby-players" style="max-height:220px" class="scroll">
+          <div class="tm tc" style="padding:16px">En attente<span class="wdots"><span>.</span><span>.</span><span>.</span></span></div>
+        </div>
+      </div>
+      <div class="card" style="max-width:none">
+        <div class="card-title">Résumé</div>
+        <div id="lobby-summary" class="tm" style="font-size:13px;line-height:2"></div>
+      </div>
+    </div>
+    <div class="flex gap8 jc">
+      <button class="btn" onclick="showScreen('sc-setup')">← Modifier</button>
+      <button class="btn btn-primary" onclick="startGame()" id="start-btn">Lancer la partie →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PLAYER LOBBY ===== -->
+<div id="sc-player-lobby" class="screen">
+  <div class="logo">Quiz<span>Night</span></div>
+  <div class="card tc">
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Salle</div>
+    <div id="player-room-code" class="room-code">----</div>
+    <hr>
+    <div id="player-lobby-name" style="font-size:18px;font-weight:700;font-family:'Syne',sans-serif;margin-bottom:3px"></div>
+    <div id="player-lobby-team" class="tm"></div>
+    <hr>
+    <div class="tm">En attente du lancement<span class="wdots"><span>.</span><span>.</span><span>.</span></span></div>
+    <div id="lobby-players-list" class="tm mt8" style="font-size:12px"></div>
+  </div>
+</div>
+
+<!-- ===== GAME HOST ===== -->
+<div id="sc-game-host" class="screen top" style="align-items:flex-start;padding:14px">
+  <div style="width:100%;max-width:820px;margin:0 auto">
+    <div class="game-hdr">
+      <div class="flex ac gap12">
+        <div class="logo" style="font-size:15px;margin-bottom:0">Quiz<span>Night</span></div>
+        <div id="host-prog" class="prog-dots"></div>
+      </div>
+      <div class="flex ac gap12">
+        <span id="host-q-label" class="tm" style="font-size:12px"></span>
+        <div class="timer-ring">
+          <svg width="50" height="50" viewBox="0 0 50 50"><circle class="tbg" cx="25" cy="25" r="21"/><circle class="tfg" id="host-tcirc" cx="25" cy="25" r="21" stroke-dasharray="131.9" stroke-dashoffset="0"/></svg>
+          <div class="tnum" id="host-tnum">--</div>
+        </div>
+      </div>
+    </div>
+    <div class="qcard" id="host-qcard">
+      <div class="flex ac gap8 mb16">
+        <span id="host-q-type" class="badge badge-accent"></span>
+        <span id="host-q-pts" class="tm" style="font-size:12px"></span>
+        <span id="host-secret-badge" style="display:none" class="secret-theme-badge">🎲 Mode Secret</span>
+    <span id="host-mode-badge" style="display:none" class="badge badge-orange"></span>
+      </div>
+      <div class="q-text" id="host-q-text"></div>
+      <div id="host-media-ref"></div>
+      <div id="host-ans-ref" class="tm" style="font-size:12px;margin-top:8px"></div>
+    </div>
+    <div>
+      <div class="flex jb ac mb8">
+        <div style="font-size:14px;font-weight:600">Réponses <span id="resp-count" class="badge badge-gray">0</span></div>
+        <div class="flex gap8">
+          <button class="btn btn-sm btn-success" id="val-all-btn" onclick="validateAll()" style="display:none">✓ Tout valider</button>
+          <button class="btn btn-sm" id="end-timer-btn" onclick="endTimerEarly()">⏩ Fin du timer</button>
+          <button class="btn btn-sm" onclick="revealAnswers()">Révéler</button>
+          <button class="btn btn-sm btn-primary" id="next-q-btn" onclick="nextQuestion()">Suivant →</button>
+        </div>
+      </div>
+      <div id="resp-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== GAME PLAYER ===== -->
+<div id="sc-game-player" class="screen top" style="align-items:flex-start;padding:14px">
+  <div style="width:100%;max-width:620px;margin:0 auto">
+    <div class="game-hdr" style="max-width:none">
+      <div class="flex ac gap8">
+        <div class="logo" style="font-size:15px;margin-bottom:0">Quiz<span>Night</span></div>
+        <div id="player-prog" class="prog-dots"></div>
+      </div>
+      <div class="flex ac gap8">
+        <span id="player-score" class="badge badge-accent">0 pts</span>
+        <div class="timer-ring">
+          <svg width="50" height="50" viewBox="0 0 50 50"><circle class="tbg" cx="25" cy="25" r="21"/><circle class="tfg" id="player-tcirc" cx="25" cy="25" r="21" stroke-dasharray="131.9" stroke-dashoffset="0"/></svg>
+          <div class="tnum" id="player-tnum">--</div>
+        </div>
+      </div>
+    </div>
+    <!-- Secret number reveal -->
+    <div id="secret-reveal-card" style="display:none" class="qcard tc">
+      <div class="secret-theme-badge">🎲 Mode Secret</div>
+      <div class="tm mb8">Ton numéro secret pour cette question :</div>
+      <div id="my-secret-num" class="secret-num">--</div>
+      <div class="tm" style="font-size:12px">Garde-le secret ! Donne une réponse qui correspond à ce niveau.</div>
+    </div>
+    <div class="qcard" id="player-qcard">
+      <div class="flex ac gap8 mb16">
+        <span id="player-q-type" class="badge badge-accent"></span>
+      </div>
+      <div class="q-text" id="player-q-text">En attente...</div>
+      <div id="player-media"></div>
+      <div id="player-ans-area"></div>
+    </div>
+    <div id="player-feedback" style="display:none" class="qcard tc">
+      <div id="pfb-icon" style="font-size:30px;margin-bottom:6px"></div>
+      <div id="pfb-text" style="font-size:16px;font-weight:600"></div>
+      <div id="pfb-sub" class="tm mt8"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LEADERBOARD ===== -->
+<div id="sc-lb" class="screen">
+  <div style="width:100%;max-width:580px">
+    <div class="tc mb24">
+      <div class="logo" style="font-size:22px;margin-bottom:4px">Quiz<span>Night</span></div>
+      <div id="lb-sub" class="tm"></div>
+    </div>
+    <div id="lb-list"></div>
+    <div class="flex jc mt24">
+      <button class="btn btn-primary" id="lb-continue-btn" onclick="continueFromLb()" style="display:none">Continuer →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FINAL ===== -->
+<div id="sc-final" class="screen">
+  <div style="width:100%;max-width:580px;text-align:center">
+    <div style="font-size:48px;margin-bottom:14px">🏆</div>
+    <div class="logo" style="font-size:26px;margin-bottom:4px">Résultats finaux</div>
+    <div class="tm mb20">La partie est terminée !</div>
+    <div id="final-lb"></div>
+    <div id="final-btns" class="flex gap8 jc mt24">
+      <button class="btn" onclick="goHome()">🏠 Accueil</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIF -->
+<!-- UNDERCOVER HOST SCREEN -->
+<div id="sc-uc-host" class="screen top" style="align-items:flex-start;padding:14px">
+  <div style="width:100%;max-width:820px;margin:0 auto">
+    <div class="game-hdr">
+      <div class="flex ac gap8">
+        <div class="logo" style="font-size:15px;margin-bottom:0">Quiz<span>Night</span></div>
+        <span id="uc-host-phase-badge" class="badge badge-pink" style="background:rgba(244,114,182,.13);color:#f472b6"></span>
+      </div>
+      <div class="flex ac gap8">
+        <span id="uc-round-label" class="tm" style="font-size:12px"></span>
+        <button class="btn btn-sm btn-primary" id="uc-next-btn" onclick="ucHostNext()">Suivant →</button>
+      </div>
+    </div>
+    <div class="qcard" id="uc-host-card">
+      <div id="uc-host-body"></div>
+    </div>
+    <div id="uc-resp-section">
+      <div class="flex jb ac mb8">
+        <div style="font-size:14px;font-weight:600">Indices <span id="uc-resp-count" class="badge badge-gray">0</span></div>
+      </div>
+      <div id="uc-resp-list"></div>
+    </div>
+    <div id="uc-vote-section" style="display:none">
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px">Votes <span id="uc-vote-count" class="badge badge-gray">0</span></div>
+      <div id="uc-vote-list"></div>
+      <button class="btn btn-primary btn-full mt16" onclick="ucRevealResult()">Révéler le résultat</button>
+    </div>
+  </div>
+</div>
+
+<!-- UNDERCOVER PLAYER SCREEN -->
+<div id="sc-uc-player" class="screen top" style="align-items:flex-start;padding:14px">
+  <div style="width:100%;max-width:620px;margin:0 auto">
+    <div class="game-hdr" style="max-width:none">
+      <div class="flex ac gap8">
+        <div class="logo" style="font-size:15px;margin-bottom:0">Quiz<span>Night</span></div>
+        <span class="badge" style="background:rgba(244,114,182,.13);color:#f472b6">🕵️ Undercover</span>
+      </div>
+      <span id="uc-player-score" class="badge badge-accent">0 pts</span>
+    </div>
+    <div class="qcard">
+      <div id="uc-player-body"></div>
+    </div>
+    <div id="uc-player-feedback" style="display:none" class="qcard tc">
+      <div id="uc-pfb-icon" style="font-size:30px;margin-bottom:6px"></div>
+      <div id="uc-pfb-text" style="font-size:16px;font-weight:600"></div>
+      <div id="uc-pfb-sub" class="tm mt8"></div>
+    </div>
+  </div>
+</div>
+
+<div id="notif" class="notif"></div>
+
+<script>
+// ===== ORDER MODE =====
+var _questionOrder = 'sequential';
+function setQuestionOrder(mode){
+  _questionOrder = mode;
+  const seq = document.getElementById('order-seq-btn');
+  const rand = document.getElementById('order-rand-btn');
+  if(seq){ seq.style.borderColor=mode==='sequential'?'var(--accent)':''; seq.style.background=mode==='sequential'?'var(--adim)':''; seq.style.color=mode==='sequential'?'var(--accent)':''; }
+  if(rand){ rand.style.borderColor=mode==='random'?'var(--accent)':''; rand.style.background=mode==='random'?'var(--adim)':''; rand.style.color=mode==='random'?'var(--accent)':''; }
+  notify(mode==='random'?'🔀 Ordre aléatoire !':'📋 Ordre normal','success');
+}
+
+// =====================================================================
+// STATE
+// =====================================================================
+let S = {
+  role:null, code:null, hostName:null, playerName:null, playerTeam:null,
+  teamsEnabled:false, teamsList:[], questions:[], currentQ:0,
+  players:{}, settings:{timer:30,corrMode:'mixed',points:100},
+  timerInterval:null, timerVal:0, phase:'lobby',
+  responses:{}, myScore:0, myId:null, _lastTs:0
+};
+let channel = null;
+let questions = [];
+let teamsMode = false;
+let prevIdx = 0;
+
+// =====================================================================
+// UTILS
+// =====================================================================
+const genCode = ()=>Math.random().toString(36).substr(2,4).toUpperCase();
+const genId   = ()=>Math.random().toString(36).substr(2,8);
+const initials= n=>n.split(' ').map(w=>w[0]).join('').substr(0,2).toUpperCase();
+// ===== FIREBASE SYNC LAYER =====
+const rkey = (c,k) => 'rooms/'+c+'/'+k;
+
+// Async Firebase set
+async function save(c,k,v){
+  try{
+    const db=window._fbDb;if(!db)return;
+    // Clean undefined values to avoid Firebase rejection
+    let cleanV = v===undefined ? null : v;
+    if(cleanV!==null && typeof cleanV==='object'){
+      cleanV = JSON.parse(JSON.stringify(cleanV, (k,v)=>v===undefined?null:v));
+    }
+    await window._fbSet(window._fbRef(db,rkey(c,k)), cleanV);
+  }catch(e){console.error('save error',e);}
+}
+
+// Sync cache for instant reads (populated by listeners)
+const _cache = {};
+function _cacheSet(c,k,v){ _cache[rkey(c,k)]=v; }
+function load(c,k,d=null){
+  const v=_cache[rkey(c,k)];
+  return v!==undefined?v:d;
+}
+
+// Async load directly from Firebase (for initial reads)
+async function loadAsync(c,k,d=null){
+  try{
+    const db=window._fbDb;if(!db)return d;
+    const snap=await window._fbGet(window._fbRef(db,rkey(c,k)));
+    const v=snap.val();
+    if(v!==null&&v!==undefined){_cacheSet(c,k,v);return v;}
+    return d;
+  }catch(e){return d;}
+}
+
+// Broadcast = write to Firebase messages path
+async function broadcast(c,type,data){
+  try{
+    const db=window._fbDb;
+    if(!db){console.error('[QN] broadcast: Firebase not ready!');return;}
+    const cleanData = JSON.parse(JSON.stringify(data, (k,v) => v===undefined ? null : v));
+    const ts=Date.now();
+    // Write to msgs list (for onChildAdded)
+    const msgsRef=window._fbRef(db,'rooms/'+c+'/msgs');
+    await window._fbPush(msgsRef,{type,data:cleanData,ts});
+    // ALSO write to last_event (for onValue polling fallback)
+    await window._fbSet(window._fbRef(db,'rooms/'+c+'/last_event'),{type,data:cleanData,ts});
+    console.log('[QN] broadcast sent:',type);
+  }catch(e){console.error('[QN] broadcast error:',e);}
+}
+
+// Active Firebase listeners
+const _listeners = {};
+function listenPath(c,k,cb){
+  const path=rkey(c,k);
+  if(_listeners[path])return;
+  const db=window._fbDb;if(!db)return;
+  const r=window._fbRef(db,path);
+  const unsub=window._fbOnValue(r,(snap)=>{
+    const v=snap.val();
+    _cacheSet(c,k,v!==null?v:{});
+    if(cb)cb(v);
+  });
+  _listeners[path]=unsub;
+}
+
+// Listen to new messages using onChildAdded - never misses a message
+function listenMsgs(c,cb){
+  const path='rooms/'+c+'/msgs';
+  if(_listeners['msgs_'+c])return;
+  if(!window._fbDb||!window._fbOnChildAdded||!window._fbRef){
+    console.log('[QN] listenMsgs: Firebase not ready, retrying...');
+    setTimeout(()=>listenMsgs(c,cb),300);
+    return;
+  }
+  const db=window._fbDb;
+  // Use limitToLast to only get new messages, not all history
+  const {query, limitToLast, orderByKey} = window._fbExtras||{};
+  const r=window._fbRef(db,path);
+  const subscribeTs=Date.now();
+  console.log('[QN] listenMsgs: subscribing to',path);
+  window._fbOnChildAdded(r,(snap)=>{
+    const msg=snap.val();
+    if(!msg||!msg.type)return;
+    // Only skip messages that are clearly old (>10s before subscription)
+    if(msg.ts && msg.ts < subscribeTs-10000){
+      console.log('[QN] skipping old msg:',msg.type,'age:',Math.floor((subscribeTs-msg.ts)/1000)+'s');
+      return;
+    }
+    console.log('[QN] msg received:',msg.type);
+    if(cb)cb(msg);
+  },(err)=>{
+    console.error('[QN] listenMsgs error:',err);
+  });
+  _listeners['msgs_'+c]=true;
+  console.log('[QN] listenMsgs: active for room',c);
+}
+function unlistenAll(){
+  Object.keys(_listeners).forEach(path=>{
+    if(path.startsWith('msgs_'))return; // These use onChildAdded, handled differently
+    try{
+      const db=window._fbDb;if(!db)return;
+      const r=window._fbRef(db,path);
+      window._fbOff(r);
+    }catch(e){}
+  });
+  // Clean up msgs listeners
+  if(S.code){
+    try{
+      const db=window._fbDb;
+      if(db){window._fbOff(window._fbRef(db,'rooms/'+S.code+'/msgs'));}
+    }catch(e){}
+  }
+  Object.keys(_listeners).forEach(k=>delete _listeners[k]);
+}
+function notify(msg,type='info'){
+  const el=document.getElementById('notif');
+  el.textContent=msg; el.className='notif show';
+  el.style.borderColor=type==='success'?'var(--green)':type==='error'?'var(--red)':'var(--border2)';
+  setTimeout(()=>el.classList.remove('show'),3000);
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function broadcast(code,type,data){
+  if(channel) channel.postMessage({code,type,data,ts:Date.now()});
+  save(code,'last_msg',{type,data,ts:Date.now()});
+}
+function setTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='join'?0:1)));
+  document.getElementById('tab-join').style.display=t==='join'?'block':'none';
+  document.getElementById('tab-host').style.display=t==='host'?'block':'none';
+}
+
+// =====================================================================
+// TYPE LABELS & BADGES
+// =====================================================================
+const TYPE_LABELS = {
+  qcm:'QCM', open:'Réponse libre', truefalse:'Vrai / Faux',
+  hotspot:'Pin sur image', scale:'Échelle', secret:'Mode Secret 🎲'
+};
+const TYPE_BADGE = {
+  qcm:'badge-accent', open:'badge-blue', truefalse:'badge-green',
+  hotspot:'badge-purple', scale:'badge-orange', secret:'badge-purple'
+};
+
+// =====================================================================
+// TEAMS
+// =====================================================================
+function setTeamsMode(v){
+  teamsMode=v;
+  document.getElementById('tm-cfg').style.display=v?'block':'none';
+  document.getElementById('tm-yes').style.cssText=v?'flex:1;border-color:var(--accent);background:var(--adim);color:var(--accent)':'flex:1';
+  document.getElementById('tm-no').style.cssText=!v?'flex:1;border-color:var(--accent);background:var(--adim);color:var(--accent)':'flex:1';
+}
+
+// =====================================================================
+// SETUP NAV
+// =====================================================================
+const HOST_PASSWORD = 'quiznight2025';
+function goToSetup(){
+  const name=document.getElementById('host-name').value.trim();
+  if(!name){notify('Entre ton pseudo','error');return;}
+  const pwd=prompt('🔐 Mot de passe hôte :');
+  if(pwd===null)return;
+  if(pwd.trim()!==HOST_PASSWORD){notify('Mot de passe incorrect','error');return;}
+  showScreen('sc-setup'); renderQList(); updateQCount();
+  // Update saved quiz count
+  setTimeout(()=>{
+    const count=document.getElementById('saved-count');
+    if(count)count.textContent=getSavedQuizzes().length;
+  },100);
+}
+function goHome(){
+  unlistenAll();
+  if(_pollPlayer){clearInterval(_pollPlayer);_pollPlayer=null;}
+  if(_pollHost){clearInterval(_pollHost);_pollHost=null;}
+  if(S.timerInterval)clearInterval(S.timerInterval);
+  S={role:null,code:null,hostName:null,playerName:null,playerTeam:null,teamsEnabled:false,teamsList:[],questions:[],currentQ:0,players:{},settings:{timer:30,corrMode:'mixed',points:100},timerInterval:null,timerVal:0,phase:'lobby',responses:{},myScore:0,myId:null,_lastTs:0};
+  showScreen('sc-home');
+}
+
+// =====================================================================
+// QUESTION BUILDER
+// =====================================================================
+const SAMPLES = [
+  {type:'qcm',text:'Dans quel anime Goku est-il le protagoniste ?',options:['Dragon Ball Z','Naruto','One Piece','Bleach'],correct:[0],answer:'',points:100},
+  {type:'qcm',text:'Dans Genshin Impact, quelle nation est inspirée de la France ?',options:['Mondstadt','Fontaine','Sumeru','Natlan'],correct:[1],answer:'',points:100},
+  {type:'truefalse',text:'Naruto Uzumaki est un Jinchuriki.',options:['Vrai','Faux'],correct:[0],answer:'',points:100},
+  {type:'open',text:'Comment s\'appelle le père de Goku ?',options:[],correct:[],answer:'bardock',points:150},
+  {type:'qcm',text:'Quel jeu met en scène Master Chief ?',options:['Destiny','Halo','Gears of War','Call of Duty'],correct:[1],answer:'',points:100},
+  {type:'open',text:'Quel est le vrai nom du Roi des Monstres dans Godzilla ?',options:[],correct:[],answer:'gojira',points:150},
+  {type:'scale',text:'Combien de Gym Badges faut-il pour finir Pokémon Rouge/Bleu ?',scaleMin:0,scaleMax:20,correctScale:8,options:[],correct:[],answer:'',points:200},
+  {type:'secret',text:'Le plus fort des Pokémon',secretTheme:'Pokémon',secretMin:1,secretMax:100,options:[],correct:[],answer:'',points:150,correctionMode:'manual'},
+];
+
+function loadSamples(){
+  questions=SAMPLES.map((q,i)=>({...q,id:Date.now()+i}));
+  questions.push({...BID_SAMPLE,id:Date.now()+100});
+  questions.push({...UC_SAMPLE,id:Date.now()+101});
+  renderQList(); updateQCount(); notify('10 exemples chargés !','success');
+}
+
+function addQ(type='qcm'){
+  const pts=parseInt(document.getElementById('q-points').value)||100;
+  const q={id:Date.now(),type,text:'',options:['','','',''],correct:[0],answer:'',points:pts,
+    scaleMin:0,scaleMax:100,correctScale:50,
+    secretTheme:'',secretMin:1,secretMax:100,
+    bidTheme:'',bidTimer:30,ucWordCivil:'',ucWordImpostor:'',
+    mediaUrl:'',mediaType:'none'};
+  questions.push(q); renderQList(); updateQCount();
+  // Scroll to bottom
+  setTimeout(()=>{const el=document.getElementById('q-list');if(el)el.scrollTop=el.scrollHeight;},50);
+}
+
+function removeQ(id){questions=questions.filter(q=>q.id!=id);renderQList();updateQCount();}
+
+function updateQ(id,field,val){const q=questions.find(q=>q.id==id);if(q)q[field]=val;}
+function updateOpt(id,i,val){const q=questions.find(q=>q.id==id);if(q)q.options[i]=val;}
+function toggleCorrect(id,i){
+  const q=questions.find(q=>q.id==id);if(!q)return;
+  const idx=q.correct.indexOf(i);
+  if(idx>=0)q.correct.splice(idx,1);else q.correct.push(i);
+  renderQList();
+}
+function setTF(id,i){const q=questions.find(q=>q.id==id);if(q){q.correct=[i];renderQList();}}
+function changeQType(id,type){
+  const q=questions.find(q=>q.id==id);if(!q)return;
+  q.type=type;
+  if(type==='truefalse'){q.options=['Vrai','Faux'];q.correct=[0];}
+  else if(type==='qcm'&&q.options.length<4){q.options=['','','',''];q.correct=[0];}
+  renderQList();
+}
+
+function updateQCount(){
+  const b=document.getElementById('q-count-badge');
+  if(b)b.textContent=questions.length;
+}
+
+function renderQList(){
+  const el=document.getElementById('q-list');if(!el)return;
+  if(questions.length===0){
+    el.innerHTML='<div class="tm tc" style="padding:32px">Aucune question. Clique <strong>+ Ajouter</strong>, utilise l\'<strong>Import texte</strong>, ou charge les <strong>Exemples</strong>.</div>';
+    return;
+  }
+  el.innerHTML=questions.map((q,i)=>renderQBuilder(q,i)).join('');
+}
+
+function renderQBuilder(q,i){
+  if(q.type==='bid') return renderBidBuilder(q,i);
+  if(q.type==='undercover') return renderUCBuilder(q,i);
+  const typeOpts=[
+    ['qcm','QCM'],['open','Réponse libre'],['truefalse','Vrai/Faux'],
+    ['hotspot','Pin sur image'],['scale','Échelle'],['secret','Mode Secret 🎲'],
+    ['bid','Enchère 🎯'],['undercover','Undercover 🕵️']
+  ].map(([v,l])=>`<option value="${v}"${q.type===v?' selected':''}>${l}</option>`).join('');
+
+  let body='';
+
+  // Media section (for QCM + open + truefalse + hotspot)
+  if(['qcm','open','truefalse','hotspot','scale','secret'].includes(q.type)){
+    const mediaTypes=[['none','Aucun'],['image','Image'],['video','Vidéo'],['audio','Son']];
+    body+=`<div style="margin-bottom:10px">
+      <label>Média (optionnel)</label>
+      <div class="flex gap8 mb8">
+        ${mediaTypes.map(([v,l])=>`<button class="btn btn-xs${(q.mediaType||'none')===v?' btn-primary':''}" onclick="setMediaType('${q.id}','${v}',this)">${l}</button>`).join('')}
+      </div>
+      ${(q.mediaType&&q.mediaType!=='none')?`
+        <div class="flex gap8" style="margin-bottom:6px">
+          <input type="text" id="media-url-${q.id}" placeholder="https://... ou coller URL" value="${q.mediaUrl&&!q.mediaUrl.startsWith('data:')?q.mediaUrl:q.mediaUrl?.startsWith('data:')?'📎 Fichier uploadé':''}" onchange="updateQ('${q.id}','mediaUrl',this.value)" style="margin-bottom:0;flex:1">
+          <label class="btn btn-sm" style="cursor:pointer;white-space:nowrap">📁 Upload<input type="file" accept="image/*,video/*,audio/*" style="display:none" onchange="uploadQuestionMedia('${q.id}',this,'${q.mediaType}')"></label>
+        </div>
+        ${renderMediaPreview(q)}
+      `:''}
+    </div>`;
+  }
+
+  if(q.type==='qcm'){
+    body+=`<div class="opts-grid">${q.options.map((o,j)=>`
+      <div class="opt-wrap">
+        <input type="text" placeholder="Option ${String.fromCharCode(65+j)}" value="${o}" onchange="updateOpt('${q.id}',${j},this.value)">
+        <div class="ck${q.correct.includes(j)?' on':''}" onclick="toggleCorrect('${q.id}',${j})" title="Bonne réponse">✓</div>
+      </div>`).join('')}</div>`;
+  } else if(q.type==='truefalse'){
+    body+=`<div class="flex gap8 mt8">
+      <button class="btn btn-sm${q.correct[0]===0?' btn-success':''}" onclick="setTF('${q.id}',0)">✓ Vrai</button>
+      <button class="btn btn-sm${q.correct[0]===1?' btn-danger':''}" onclick="setTF('${q.id}',1)">✗ Faux</button>
+    </div>`;
+  } else if(q.type==='open'){
+    body+=`<input type="text" placeholder="Réponse correcte (insensible à la casse)..." value="${q.answer||''}" onchange="updateQ('${q.id}','answer',this.value)">`;
+  } else if(q.type==='hotspot'){
+    const hsId='hs-'+q.id;
+    body+=`<div style="margin-bottom:8px">
+      <label>Image (upload ou URL)</label>
+      <div class="flex gap8 mb8">
+        <input type="text" placeholder="https://... ou coller une URL" value="${q.mediaUrl||''}" onchange="updateQ('${q.id}','mediaUrl',this.value);updateQ('${q.id}','mediaType','image');renderQList()" style="margin-bottom:0">
+        <label class="btn btn-sm" style="cursor:pointer;white-space:nowrap">
+          📁 Upload
+          <input type="file" accept="image/*" style="display:none" onchange="uploadHotspotImage('${q.id}',this)">
+        </label>
+      </div>
+      ${q.mediaUrl?`
+      <div class="tm" style="font-size:12px;margin-bottom:6px">📍 Clique sur l'image pour placer la zone de réponse correcte (facultatif) :</div>
+      <div style="position:relative;display:inline-block;max-width:100%;cursor:crosshair" id="${hsId}-wrap">
+        <img src="${q.mediaUrl}" style="max-width:100%;max-height:240px;border-radius:var(--r);display:block" id="${hsId}-img" draggable="false" onload="this.style.display='block'">
+        <canvas id="${hsId}-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;border-radius:var(--r)" onclick="placeHotspotAnswer('${q.id}','${hsId}',event)"></canvas>
+        ${q.correctPin?`<div style="position:absolute;width:28px;height:28px;background:var(--green);border-radius:50%;transform:translate(-50%,-50%);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:12px;pointer-events:none;left:${q.correctPin.x}%;top:${q.correctPin.y}%">✓</div>`:''}
+      </div>
+      <div class="tm mt8" style="font-size:11px">${q.correctPin?`Zone correcte placée à ${q.correctPin.x.toFixed(0)}%, ${q.correctPin.y.toFixed(0)}% · <button class="btn btn-xs btn-danger" onclick="updateQ('${q.id}','correctPin',null);renderQList()">Effacer</button>`:'Aucune zone définie — tu valideras manuellement chaque réponse.'}</div>
+      `:`<div class="tm" style="font-size:12px;color:var(--red)">⚠ Ajoute une image ci-dessus pour activer ce mode.</div>`}
+    </div>`
+  }
+
+  return `<div class="qb" id="qb-${q.id}">
+    <div class="qb-head">
+      <span class="qb-num">Q${i+1}</span>
+      <div class="flex gap8 ac">
+        <select onchange="changeQType('${q.id}',this.value)" style="width:auto;margin-bottom:0;font-size:12px;padding:5px 10px">${typeOpts}</select>
+        <button class="btn btn-xs btn-danger" onclick="removeQ('${q.id}')">✕</button>
+      </div>
+    </div>
+    <input type="text" placeholder="Texte de la question..." value="${q.text}" onchange="updateQ('${q.id}','text',this.value)" style="margin-bottom:8px">
+    ${body}
+    <div class="flex ac gap8 mt8">
+      <label style="margin:0;white-space:nowrap">Points :</label>
+      <input type="number" value="${q.points}" min="10" max="2000" step="10" onchange="updateQ('${q.id}','points',parseInt(this.value))" style="width:90px;margin-bottom:0">
+    </div>
+  </div>`;
+}
+
+function setMediaType(id,type,btn){
+  const q=questions.find(q=>q.id==id);if(!q)return;
+  q.mediaType=type; q.mediaUrl='';
+  renderQList();
+}
+
+function renderMediaPreview(q){
+  if(!q.mediaUrl||q.mediaType==='none')return'';
+  if(q.mediaType==='image')return`<div class="media-preview"><img src="${q.mediaUrl}" onerror="this.style.display='none'" alt="aperçu"></div>`;
+  if(q.mediaType==='video')return`<div class="media-preview"><video src="${q.mediaUrl}" controls></video></div>`;
+  if(q.mediaType==='audio')return`<div class="media-preview" style="padding:8px"><audio src="${q.mediaUrl}" controls></audio></div>`;
+  return'';
+}
+
+function renderMediaPlayer(q){
+  if(!q.mediaUrl||!q.mediaType||q.mediaType==='none')return'';
+  // Handle __base64__ placeholder (hotspot images)
+  if(q.mediaUrl==='__base64__'&&q._base64)return`<div class="media-preview"><img src="${q._base64}" alt=""></div>`;
+  if(q.mediaUrl==='__base64__')return'<div class="tm" style="padding:8px;font-size:12px">⚠ Image locale</div>';
+  // Base64 or URL - both work the same way
+  if(q.mediaType==='image')return`<div class="media-preview"><img src="${q.mediaUrl}" alt="" onerror="this.style.display='none'"></div>`;
+  if(q.mediaType==='video')return`<div class="media-preview"><video src="${q.mediaUrl}" controls autoplay style="max-width:100%;border-radius:var(--r)"></video></div>`;
+  if(q.mediaType==='audio')return`<div class="media-preview" style="padding:10px;text-align:center">
+    <div style="font-size:28px;margin-bottom:6px">🎵</div>
+    <audio src="${q.mediaUrl}" controls autoplay style="width:100%;max-width:300px"></audio>
+  </div>`;
+  return'';
+}
+
+// =====================================================================
+// IMPORT
+// =====================================================================
+function toggleImport(){
+  const p=document.getElementById('import-panel');
+  const b=document.getElementById('imp-btn');
+  const v=p.style.display!=='none';
+  p.style.display=v?'none':'block';
+  b.textContent=v?'📋 Import texte':'✕ Fermer';
+}
+function importQs(){
+  const raw=document.getElementById('import-text').value.trim();
+  if(!raw){notify('Colle du texte d\'abord','error');return;}
+  const pts=parseInt(document.getElementById('q-points').value)||100;
+  let added=0,errs=0;
+  raw.split('\n').map(l=>l.trim()).filter(Boolean).forEach((line,li)=>{
+    const p=line.split('|').map(s=>s.trim());
+    const t=p[0].toUpperCase();
+    if(t==='ENCHERE'&&p.length>=2){questions.push({id:Date.now()+li,type:'bid',text:'',bidTheme:p[1],bidTimer:parseInt(p[2])||30,options:[],correct:[],answer:'',points:pts,mediaUrl:'',mediaType:'none',scaleMin:0,scaleMax:100,correctScale:50,scaleTolerance:10,secretTheme:'',secretMin:1,secretMax:100,ucWordCivil:'',ucWordImpostor:''});added++;}
+    else if(t==='UNDERCOVER'&&p.length>=3){questions.push({id:Date.now()+li,type:'undercover',text:'',ucWordCivil:p[1],ucWordImpostor:p[2],bidTheme:'',bidTimer:30,options:[],correct:[],answer:'',points:pts,mediaUrl:'',mediaType:'none',scaleMin:0,scaleMax:100,correctScale:50,scaleTolerance:10,secretTheme:'',secretMin:1,secretMax:100});added++;}
+    else if(t==='QCM'&&p.length>=4){
+      const opts=p[2].split(',').map(o=>o.trim());
+      const ci=parseInt(p[3])||0;
+      questions.push({id:Date.now()+li,type:'qcm',text:p[1],options:opts.length>=4?opts:[...opts,...Array(Math.max(0,4-opts.length)).fill('')],correct:[ci],answer:'',points:pts,mediaType:'none',mediaUrl:''});
+      added++;
+    } else if(t==='OPEN'&&p.length>=3){
+      questions.push({id:Date.now()+li,type:'open',text:p[1],options:[],correct:[],answer:p[2],points:pts,mediaType:'none',mediaUrl:''});
+      added++;
+    } else if(t==='VF'&&p.length>=3){
+      const isV=p[2].toLowerCase().includes('vrai');
+      questions.push({id:Date.now()+li,type:'truefalse',text:p[1],options:['Vrai','Faux'],correct:[isV?0:1],answer:'',points:pts,mediaType:'none',mediaUrl:''});
+      added++;
+    } else if(t==='ECHELLE'&&p.length>=4){
+      questions.push({id:Date.now()+li,type:'scale',text:p[1],scaleMin:parseInt(p[2])||0,scaleMax:parseInt(p[3])||100,correctScale:parseInt(p[4])||50,scaleTolerance:10,options:[],correct:[],answer:'',points:pts,mediaType:'none',mediaUrl:''});
+      added++;
+    } else errs++;
+  });
+  renderQList(); updateQCount();
+  document.getElementById('import-text').value='';
+  toggleImport();
+  notify(`${added} question(s) importée(s)${errs?' · '+errs+' ignorée(s)':''}`,added>0?'success':'error');
+}
+
+// =====================================================================
+// PREVIEW
+// =====================================================================
+function openPreview(){
+  if(questions.length===0){notify('Pas de questions à prévisualiser','error');return;}
+  prevIdx=0; renderPreview(); document.getElementById('preview-modal').style.display='flex';
+}
+function closePreview(){document.getElementById('preview-modal').style.display='none';}
+function prevQ(dir){
+  prevIdx=Math.max(0,Math.min(questions.length-1,prevIdx+dir));
+  renderPreview();
+}
+function renderPreview(){
+  const q=questions[prevIdx];
+  if(q.type==='bid'||q.type==='undercover'){renderSpecialPreview(q);return;}
+  document.getElementById('prev-label').textContent=`Question ${prevIdx+1} / ${questions.length} · ${TYPE_LABELS[q.type]||q.type}`;
+  const body=document.getElementById('prev-body');
+
+  let html=`<div class="flex ac gap8 mb16">
+    <span class="badge ${TYPE_BADGE[q.type]||'badge-gray'}">${TYPE_LABELS[q.type]||q.type}</span>
+    <span class="tm" style="font-size:12px">${q.points} pts</span>
+    ${q.type==='secret'?`<span class="secret-theme-badge">🎲 Mode Secret</span>`:''}
+  </div>
+  <div class="q-text">${q.text||'(pas de texte)'}</div>
+  ${renderMediaPlayer(q)}`;
+
+  if(q.type==='qcm'){
+    html+=`<div class="ans-grid mt8">${q.options.map((o,i)=>`
+      <div class="ans-btn${q.correct.includes(i)?' correct':''}" style="cursor:default">
+        <div class="ans-letter">${String.fromCharCode(65+i)}</div>${o||'(vide)'}
+        ${q.correct.includes(i)?'<span class="badge badge-green" style="margin-left:auto">✓</span>':''}
+      </div>`).join('')}</div>`;
+  } else if(q.type==='truefalse'){
+    html+=`<div class="flex gap8 mt8">
+      <div class="ans-btn${q.correct[0]===0?' correct':''}" style="cursor:default;flex:1">Vrai ${q.correct[0]===0?'✓':''}</div>
+      <div class="ans-btn${q.correct[0]===1?' correct':''}" style="cursor:default;flex:1">Faux ${q.correct[0]===1?'✓':''}</div>
+    </div>`;
+  } else if(q.type==='open'){
+    html+=`<div style="margin-top:10px;background:var(--s2);border-radius:var(--r);padding:12px;border:1px solid var(--border)">
+      <div class="tm" style="font-size:11px;text-transform:uppercase;margin-bottom:4px">Zone de réponse (joueur)</div>
+      <input type="text" placeholder="Le joueur tape sa réponse ici..." disabled style="margin-bottom:0;opacity:.6">
+    </div>
+    <div class="tm mt8" style="font-size:12px">Réponse correcte : <strong style="color:var(--green)">${q.answer||'(non définie)'}</strong></div>`;
+  } else if(q.type==='hotspot'){
+    if(q.mediaUrl&&q.mediaType==='image'){
+      html+=`<div class="tm" style="font-size:12px;margin-top:8px;margin-bottom:6px">Les joueurs cliquent sur l'image :</div>
+      <div style="position:relative;display:inline-block;max-width:100%"><img src="${q.mediaUrl}" style="max-width:100%;border-radius:var(--r)" alt=""><div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(232,197,71,.04) 10px,rgba(232,197,71,.04) 20px);border-radius:var(--r);pointer-events:none"></div></div>
+      <div class="tm mt8" style="font-size:12px">🖱 Les joueurs cliquent · Tu valides manuellement</div>`;
+    } else {
+      html+=`<div class="tm mt8" style="color:var(--red)">⚠ Aucune image définie pour ce mode hotspot.</div>`;
+    }
+  } else if(q.type==='scale'){
+    const min=q.scaleMin||0,max=q.scaleMax||100,correct=q.correctScale||50;
+    const pct=((correct-min)/(max-min)*100).toFixed(1);
+    html+=`<div class="scale-wrap mt8">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span class="tm" style="font-size:12px">${min}</span><span class="tm" style="font-size:12px">${max}</span></div>
+      <div class="scale-track"><div class="scale-fill" style="width:${pct}%"></div><div class="scale-thumb" style="left:${pct}%"></div></div>
+      <div class="scale-val">${correct}</div>
+    </div>
+    <div class="tm mt8" style="font-size:12px">Bonne réponse : <strong style="color:var(--green)">${correct}</strong> (tolérance ±${q.scaleTolerance||10})</div>`;
+  } else if(q.type==='secret'){
+    const eg=Math.floor(Math.random()*((q.secretMax||100)-(q.secretMin||1)+1))+(q.secretMin||1);
+    html+=`<div class="tc mt16">
+      <div class="tm mb8" style="font-size:13px">Thème : <strong>${q.secretTheme||'(non défini)'}</strong></div>
+      <div class="tm mb8" style="font-size:12px">Numéros distribués entre <strong>${q.secretMin||1}</strong> et <strong>${q.secretMax||100}</strong></div>
+      <div class="tm mb8" style="font-size:12px">Exemple — un joueur voit :</div>
+      <div class="secret-num" style="font-size:56px">${eg}</div>
+      <div class="tm" style="font-size:12px">Il doit répondre quelque chose qui correspond à ce niveau dans le thème.<br>Tu valides ou refuses manuellement.</div>
+    </div>`;
+  }
+
+  body.innerHTML=html;
+}
+
+// =====================================================================
+// CREATE ROOM
+// =====================================================================
+async function createRoom(){
+  try {
+  const name=document.getElementById('host-name').value.trim();
+  if(!name){notify('Entre ton pseudo','error');goHome();return;}
+  if(questions.length===0){notify('Ajoute au moins une question','error');return;}
+  notify('Création de la salle...','info');
+  const code=genCode();
+  S.code=code; S.role='host'; S.hostName=name;
+  S.myId='host_'+genId();
+  S.teamsEnabled=teamsMode;
+  S.teamsList=teamsMode?(document.getElementById('teams-names').value.split(',').map(t=>t.trim()).filter(Boolean)):[];
+  S.questions=JSON.parse(JSON.stringify(
+    _questionOrder==='random' ? [...questions].sort(()=>Math.random()-.5) : questions
+  ));
+  S.settings={
+    timer:parseInt(document.getElementById('q-timer').value)||30,
+    corrMode:document.getElementById('correction-mode').value,
+    points:parseInt(document.getElementById('q-points').value)||100
+  };
+  S.players={};
+  S.players[S.myId]={name,team:null,score:0,isHost:true,id:S.myId};
+
+  // Firebase real-time sync active
+  // Strip base64 images before saving to Firebase (too large)
+  const questionsForFirebase = S.questions.map(q => {
+    if(q.mediaUrl && q.mediaUrl.startsWith('data:')) {
+      return {...q, mediaUrl: '__base64__', _base64: q.mediaUrl};
+    }
+    return q;
+  });
+  await save(code,'info',{code,hostName:name,teamsEnabled:S.teamsEnabled,teamsList:S.teamsList,settings:S.settings,questions:questionsForFirebase,phase:'lobby'});
+  // Store full questions (with base64) locally
+  _cacheSet(code,'info',{code,hostName:name,teamsEnabled:S.teamsEnabled,teamsList:S.teamsList,settings:S.settings,questions:S.questions,phase:'lobby'});
+  await save(code,'players',S.players);
+
+  document.getElementById('room-code-display').textContent=code;
+  document.getElementById('lobby-summary').innerHTML=`
+    <div>Questions : <strong>${questions.length}</strong></div>
+    <div>Timer : <strong>${S.settings.timer}s</strong></div>
+    <div>Correction : <strong>${{auto:'Auto',manual:'Manuel',mixed:'Mixte'}[S.settings.corrMode]}</strong></div>
+    <div>Équipes : <strong>${S.teamsEnabled?S.teamsList.join(', '):'Désactivées'}</strong></div>`;
+
+  showScreen('sc-host-lobby');
+  renderLobbyPlayers();
+  startHostPolling();
+  notify('Salle créée ! Code : '+code,'success');
+  } catch(err) {
+    console.error('createRoom error:', err);
+    notify('Erreur : '+err.message,'error');
+  }
+}
+
+function kickAll(){
+  Object.keys(S.players).forEach(id=>{if(id!==S.myId)delete S.players[id];});
+  save(S.code,'players',S.players);
+  broadcast(S.code,'kicked_all',{});
+  renderLobbyPlayers();
+}
+
+// =====================================================================
+// JOIN
+// =====================================================================
+async function joinGame(){
+  const code=document.getElementById('join-code').value.trim().toUpperCase();
+  const name=document.getElementById('join-name').value.trim();
+  if(code.length!==4){notify('Code invalide (4 caractères)','error');return;}
+  if(!name){notify('Entre ton pseudo','error');return;}
+  const info=await loadAsync(code,'info');
+  if(!info){notify('Salle introuvable','error');return;}
+  if(info.phase!=='lobby'){notify('La partie a déjà commencé','error');return;}
+
+  let team=null;
+  if(info.teamsEnabled&&info.teamsList.length>0){
+    const sel=document.querySelector('.team-opt.selected');
+    if(!sel){notify('Choisis une équipe','error');return;}
+    team=sel.dataset.team;
+  }
+
+  S.code=code; S.role='player'; S.playerName=name; S.playerTeam=team;
+  S.myId='p_'+genId();
+  S.teamsEnabled=info.teamsEnabled; S.teamsList=info.teamsList;
+  S.questions=info.questions; S.settings=info.settings;
+
+  // Firebase real-time sync active
+  const players=await loadAsync(code,'players',{});
+  players[S.myId]={name,team,score:0,isHost:false};
+  await save(code,'players',players);
+  broadcast(code,'player_joined',{id:S.myId,name,team});
+
+  document.getElementById('player-room-code').textContent=code;
+  document.getElementById('player-lobby-name').textContent=name;
+  document.getElementById('player-lobby-team').textContent=team?'🏴 Équipe : '+team:'';
+  showScreen('sc-player-lobby');
+  updatePlayerLobbyList();
+  startPlayerPolling();
+}
+
+document.getElementById('join-code').addEventListener('input',async function(){
+  const code=this.value.trim().toUpperCase();
+  if(code.length===4){
+    const info=load(code,'info');
+    if(info&&info.teamsEnabled&&info.teamsList.length>0){
+      document.getElementById('join-team-section').style.display='block';
+      document.getElementById('join-teams-grid').innerHTML=info.teamsList.map(t=>`<button class="btn btn-sm team-opt" data-team="${t}" onclick="selectTeam(this,'${t}')">${t}</button>`).join('');
+    } else {
+      document.getElementById('join-team-section').style.display='none';
+    }
+  }
+});
+function selectTeam(el,t){document.querySelectorAll('.team-opt').forEach(e=>e.classList.remove('selected'));el.classList.add('selected');}
+
+// =====================================================================
+// LOBBY RENDERING
+// =====================================================================
+function renderLobbyPlayers(){
+  const players=load(S.code,'players',{});
+  S.players=players;
+  const nonHost=Object.values(players).filter(p=>!p.isHost);
+  const cnt=document.getElementById('player-count');
+  if(cnt)cnt.textContent=nonHost.length;
+  const el=document.getElementById('lobby-players');
+  if(!el)return;
+  if(nonHost.length===0){
+    el.innerHTML='<div class="tm tc" style="padding:16px">En attente de joueurs<span class="wdots"><span>.</span><span>.</span><span>.</span></span></div>';
+    return;
+  }
+  el.innerHTML=nonHost.map(p=>`<div class="player-item">
+    <div class="flex ac gap8"><div class="avatar">${initials(p.name)}</div><div><div style="font-weight:500;font-size:14px">${p.name}</div>${p.team?`<div class="tm" style="font-size:11px">🏴 ${p.team}</div>`:''}</div></div>
+    <span class="badge badge-green">✓</span>
+  </div>`).join('');
+}
+function updatePlayerLobbyList(){
+  const players=load(S.code,'players',{});
+  const el=document.getElementById('lobby-players-list');
+  if(!el)return;
+  el.textContent=Object.values(players).filter(p=>!p.isHost).map(p=>p.name).join(' · ')||'Tu es le premier !';
+}
+
+// =====================================================================
+// TIMER
+// =====================================================================
+function startTimer(who,seconds,onEnd){
+  if(S.timerInterval)clearInterval(S.timerInterval);
+  S.timerVal=seconds;
+  const circ=document.getElementById(who+'-tcirc');
+  const num=document.getElementById(who+'-tnum');
+  const C=131.9;
+  const upd=()=>{
+    if(num)num.textContent=S.timerVal;
+    if(circ)circ.style.strokeDashoffset=C-(C*S.timerVal/seconds);
+    if(circ)circ.style.stroke=S.timerVal<=5?'var(--red)':'var(--accent)';
+  };
+  upd();
+  S.timerInterval=setInterval(()=>{
+    S.timerVal--;upd();
+    if(S.timerVal<=0){clearInterval(S.timerInterval);if(onEnd)onEnd();}
+  },1000);
+}
+
+// =====================================================================
+// GAME HOST
+// =====================================================================
+async function startGame(){
+  console.log('[QN] startGame called, code:',S.code,'players:',Object.keys(load(S.code,'players',{})||{}).length);
+  const players=load(S.code,'players',{});
+  if(Object.values(players).filter(p=>!p.isHost).length===0){notify('Aucun joueur connecté','error');return;}
+  S.currentQ=0; S.phase='question';
+  const info=await loadAsync(S.code,'info')||{};
+  info.phase='playing';
+  await save(S.code,'info',info);
+  await broadcast(S.code,'game_start',{totalQ:S.questions.length});
+  showHostQ();
+}
+
+async function showHostQ(){
+  const q=S.questions[S.currentQ];
+  if(q.type==='bid'){showHostBid();return;}
+  if(q.type==='undercover'){showHostUC();return;}
+  showScreen('sc-game-host');
+  S.responses={};
+
+  // Progress
+  document.getElementById('host-prog').innerHTML=S.questions.map((_,i)=>`<div class="pdot ${i<S.currentQ?'done':i===S.currentQ?'cur':''}"></div>`).join('');
+  document.getElementById('host-q-label').textContent=`Q${S.currentQ+1}/${S.questions.length}`;
+  document.getElementById('host-q-type').textContent=TYPE_LABELS[q.type]||q.type;
+  document.getElementById('host-q-type').className='badge '+(TYPE_BADGE[q.type]||'badge-gray');
+  document.getElementById('host-q-pts').textContent=q.points+' pts';
+  document.getElementById('host-q-text').textContent=q.text;
+  document.getElementById('resp-count').textContent='0';
+  document.getElementById('resp-list').innerHTML='';
+  document.getElementById('host-media-ref').innerHTML=renderMediaPlayer(q);
+
+  // Secret badge
+  const sb=document.getElementById('host-secret-badge');
+  sb.style.display=q.type==='secret'?'inline-block':'none';
+
+  // Correct answer ref for host
+  const ref=document.getElementById('host-ans-ref');
+  let ansHtml='';
+  if(q.type==='qcm'||q.type==='truefalse'){
+    ansHtml='Réponses : <strong style="color:var(--green)">'+q.correct.map(i=>q.options[i]).join(', ')+'</strong>';
+  } else if(q.type==='open'){
+    ansHtml='Réponse : <strong style="color:var(--green)">'+q.answer+'</strong>';
+  } else if(q.type==='scale'){
+    ansHtml=`Valeur : <strong style="color:var(--green)">${q.correctScale}</strong> (±${q.scaleTolerance||10})`;
+  } else if(q.type==='secret'){
+    ansHtml=`Thème : <strong>${q.secretTheme}</strong> · ${q.secretMin}–${q.secretMax}`;
+  } else if(q.type==='hotspot'){
+    ansHtml='Mode pin · Validation manuelle';
+  }
+  ref.innerHTML=ansHtml?`<span id="ans-spoiler" onclick="this.style.filter='none';this.style.cursor='default';this.nextSibling.remove()" style="filter:blur(6px);cursor:pointer;transition:filter .3s">${ansHtml}</span><span class="tm" style="font-size:11px;margin-left:6px">👁 cliquer pour voir</span>`:'';
+
+  // Val-all button visibility
+  const isManual=S.settings.corrMode==='manual'||(S.settings.corrMode==='mixed'&&['open','hotspot','scale','secret'].includes(q.type));
+  document.getElementById('val-all-btn').style.display=isManual?'inline-flex':'none';
+
+  // Assign secret numbers if needed
+  if(q.type==='secret'){
+    const players=load(S.code,'players',{});
+    const secrets={};
+    Object.entries(players).forEach(([id,p])=>{
+      if(!p.isHost){
+        secrets[id]=Math.floor(Math.random()*((q.secretMax||100)-(q.secretMin||1)+1))+(q.secretMin||1);
+      }
+    });
+    save(S.code,'secrets_'+S.currentQ,secrets);
+    await broadcast(S.code,'question',{qIndex:S.currentQ,question:sanitizeQ(q),timer:S.settings.timer,secrets});
+  save(S.code,'current_q',S.currentQ);
+  save(S.code,'current_question',{question:sanitizeQ(q),qIndex:S.currentQ,timeLeft:S.settings.timer,startedAt:Date.now(),mySecrets:secrets});
+  writeGameState('question',{question:sanitizeQ(q),timer:S.settings.timer,startedAt:Date.now(),secrets});
+  listenPath(S.code,'responses_'+S.currentQ,(data)=>{
+    if(!data)return;
+    _cacheSet(S.code,'responses_'+S.currentQ,data);
+    if(document.getElementById('sc-game-host').classList.contains('active'))renderHostResponses(false);
+  });
+  } else {
+    await broadcast(S.code,'question',{qIndex:S.currentQ,question:sanitizeQ(q),timer:S.settings.timer});
+  save(S.code,'current_q',S.currentQ);
+  // Write game_state for players (state-based sync)
+  const q_gs=S.questions[S.currentQ];
+  writeGameState('question',{question:sanitizeQ(q_gs),timer:S.settings.timer,startedAt:Date.now()});
+  // Re-subscribe to responses for new question number
+  const newRespPath=rkey(S.code,'responses_'+S.currentQ);
+  // Always re-listen per question (remove old listener first)
+  const oldKey='rooms/'+S.code+'/responses_'+S.currentQ;
+  if(_listeners[oldKey]){
+    try{window._fbOff(window._fbRef(window._fbDb,oldKey));}catch(e){}
+    delete _listeners[oldKey];
+  }
+  listenPath(S.code,'responses_'+S.currentQ,(data)=>{
+    if(!data)return;
+    // Merge with existing to preserve validated states
+    const existing=load(S.code,'responses_'+S.currentQ,{})||{};
+    const merged={};
+    // Start with Firebase data (source of truth)
+    Object.assign(merged,data);
+    // Preserve validated states from cache if Firebase doesn't have them
+    Object.keys(existing).forEach(pid=>{
+      if(existing[pid]?.validated!==undefined&&merged[pid]?.validated===undefined){
+        merged[pid]={...merged[pid],...existing[pid]};
+      }
+    });
+    _cacheSet(S.code,'responses_'+S.currentQ,merged);
+    // Auto-validate only new unvalidated responses
+    Object.entries(merged).forEach(([pid,resp])=>{
+      if(resp&&resp.validated===undefined&&resp.answer!==undefined){
+        autoValidate(pid,resp.answer);
+      }
+    });
+    if(document.getElementById('sc-game-host').classList.contains('active')){
+      renderHostResponses(false);
+    }
+  });
+  // Save full question state so late joiners can fetch it directly
+  save(S.code,'current_question',{
+    question: sanitizeQ(q),
+    qIndex: S.currentQ,
+    timeLeft: S.settings.timer,
+    startedAt: Date.now()
+  });
+  console.log('[QN] question broadcast sent for Q'+S.currentQ);
+  // Re-listen to responses for new question
+  listenPath(S.code,'responses_'+S.currentQ,(data)=>{
+    if(!data)return;
+    _cacheSet(S.code,'responses_'+S.currentQ,data);
+    if(document.getElementById('sc-game-host').classList.contains('active')){
+      if(bidPhase==='bidding'||bidPhase==='answering')renderBidBids();
+      else if(bidPhase==='validating')renderBidValidation();
+      else renderHostResponses(false);
+    }
+  });
+  }
+
+  startTimer('host',S.settings.timer,()=>{broadcast(S.code,'question_end',{});});
+}
+
+function sanitizeQ(q){
+  return {
+    id:q.id, type:q.type, text:q.text||'', options:q.options||[],
+    points:q.points||100, mediaType:q.mediaType||'none',
+    mediaUrl:(q.mediaUrl==='__base64__'&&q._base64)?q._base64:(q.mediaUrl||''),
+    scaleMin:q.scaleMin||0, scaleMax:q.scaleMax||100,
+    bidTheme:q.bidTheme||'', bidTimer:q.bidTimer||30,
+    ucWordCivil:q.ucWordCivil||'', ucWordImpostor:q.ucWordImpostor||'',
+    secretTheme:q.secretTheme||'', secretMin:q.secretMin||1, secretMax:q.secretMax||100,
+  };
+}
+
+function revealAnswers(){
+  clearInterval(S.timerInterval);
+  const q=S.questions[S.currentQ];
+  broadcast(S.code,'reveal',{qIndex:S.currentQ,correct:q.correct,answer:q.answer,correctScale:q.correctScale});
+  renderHostResponses(true);
+}
+
+function renderHostResponses(revealed){
+  const q=S.questions[S.currentQ];
+  const players=load(S.code,'players',{});
+  const respData=load(S.code,'responses_'+S.currentQ,{});
+  S.responses=respData;
+  const count=Object.keys(respData).length;
+  document.getElementById('resp-count').textContent=count;
+
+  const isManual=S.settings.corrMode==='manual'||(S.settings.corrMode==='mixed'&&['open','hotspot','scale','secret'].includes(q.type));
+  const el=document.getElementById('resp-list');
+  const nonHost=Object.entries(players).filter(([id,p])=>!p.isHost);
+
+  el.innerHTML=nonHost.map(([id,p])=>{
+    const r=respData[id];
+    if(!r)return`<div class="resp-item"><div><div style="font-weight:500;font-size:13px">${p.name}</div><div class="tm" style="font-size:12px">Pas de réponse</div></div><span class="badge badge-gray">—</span></div>`;
+
+    let answerText='';
+    if(q.type==='qcm'||q.type==='truefalse') answerText=q.options[r.answer]||'—';
+    else if(q.type==='scale') answerText='Valeur : '+r.answer;
+    else if(q.type==='hotspot'){
+    if(r.answer && q.correctPin){
+      const dx = r.answer.x - q.correctPin.x;
+      const dy = r.answer.y - q.correctPin.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const tolerance = q.hotspotTolerance || 10;
+      const inZone = dist <= tolerance;
+      answerText = inZone
+        ? '<span style="color:var(--green);font-weight:600">✅ Bonne zone</span>'
+        : '<span style="color:var(--red);font-weight:600">❌ Hors zone</span>';
+    } else if(r.answer){
+      // No correct pin defined - show coords for manual validation
+      answerText = `📍 ${r.answer.x?.toFixed(1)}%, ${r.answer.y?.toFixed(1)}%`;
+    } else {
+      answerText = 'Pas de réponse';
+    }
+  }
+    else if(q.type==='secret') answerText=`[${r.secret}] → "${r.answer}"`;
+    else answerText=r.answer;
+
+    let statusBadge='<span class="badge badge-gray">En attente</span>';
+    let actions='';
+    if(r.validated===true) statusBadge=`<span class="badge badge-green">+${r.points} pts</span>`;
+    else if(r.validated===false) statusBadge=`<span class="badge badge-red">0 pt</span>`;
+    else if(isManual&&revealed){
+      // For hotspot with correctPin, pre-suggest the answer
+      let suggestedOk = null;
+      if(q.type==='hotspot' && q.correctPin && r.answer){
+        const dx=r.answer.x-q.correctPin.x, dy=r.answer.y-q.correctPin.y;
+        suggestedOk = Math.sqrt(dx*dx+dy*dy) <= (q.hotspotTolerance||10);
+      }
+      const vStyle = suggestedOk===true  ? 'font-weight:700;box-shadow:0 0 0 2px var(--green)' : '';
+      const rStyle = suggestedOk===false ? 'font-weight:700;box-shadow:0 0 0 2px var(--red)' : '';
+      actions=`<div class="flex gap8">
+        <button class="btn btn-xs btn-success" onclick="validateResp('${id}',true)" style="${vStyle}">✓ Valider</button>
+        <button class="btn btn-xs btn-danger" onclick="validateResp('${id}',false)" style="${rStyle}">✗ Refuser</button>
+      </div>`;
+      statusBadge='';
+    } else if(q.type==='hotspot' && q.correctPin && r.answer && !r.validated){
+      // Hotspot with correctPin: show auto-suggested buttons even without "Révéler"
+      const dx=r.answer.x-q.correctPin.x, dy=r.answer.y-q.correctPin.y;
+      const inZone = Math.sqrt(dx*dx+dy*dy) <= (q.hotspotTolerance||10);
+      actions=`<div class="flex gap8">
+        <button class="btn btn-xs btn-success" onclick="validateResp('${id}',true)" style="${inZone?'font-weight:700;box-shadow:0 0 0 2px var(--green)':''}">✓ Valider</button>
+        <button class="btn btn-xs btn-danger" onclick="validateResp('${id}',false)" style="${!inZone?'font-weight:700;box-shadow:0 0 0 2px var(--red)':''}">✗ Refuser</button>
+      </div>`;
+      statusBadge='';
+    }
+    return`<div class="resp-item">
+      <div class="flex ac gap8">
+        <div class="avatar" style="width:28px;height:28px;font-size:10px">${initials(p.name)}</div>
+        <div><div style="font-weight:500;font-size:13px">${p.name}${p.team?' · '+p.team:''}</div><div class="tm" style="font-size:12px">${answerText}</div></div>
+      </div>
+      ${actions||statusBadge}
+    </div>`;
+  }).join('');
+}
+
+async function validateResp(playerId,correct){
+  const q=S.questions[S.currentQ];
+  const respData=load(S.code,'responses_'+S.currentQ,{})||{};
+  if(!respData[playerId])return;
+  const pts=correct?q.points:0;
+  respData[playerId].validated=correct; respData[playerId].points=pts;
+  _cacheSet(S.code,'responses_'+S.currentQ,respData);
+  window._fbSet(window._fbRef(window._fbDb,'rooms/'+S.code+'/responses_'+S.currentQ+'/'+playerId), respData[playerId]);
+  const players=load(S.code,'players',{})||{};
+  if(players[playerId]){players[playerId].score=(players[playerId].score||0)+pts;save(S.code,'players',players);}
+  if(!S.streaks)S.streaks={};
+  S.streaks[playerId]=correct?(S.streaks[playerId]||0)+1:0;
+  await broadcast(S.code,'response_validated',{playerId,correct,points:pts,qIndex:S.currentQ,streak:S.streaks[playerId]});
+  writeGameState('validated',{validations:buildValidations()});
+  renderHostResponses(true);
+  checkAllAnswered();
+}
+
+async function validateAll(){
+  const q=S.questions[S.currentQ];
+  const respData=load(S.code,'responses_'+S.currentQ,{});
+  const players=load(S.code,'players',{});
+  Object.keys(respData).forEach(id=>{
+    if(respData[id].validated===undefined){
+      respData[id].validated=true; respData[id].points=q.points;
+      if(players[id])players[id].score=(players[id].score||0)+q.points;
+    }
+  });
+  save(S.code,'responses_'+S.currentQ,respData); save(S.code,'players',players);
+  broadcast(S.code,'validate_all',{qIndex:S.currentQ,points:q.points});
+  renderHostResponses(true); notify('Toutes les réponses validées','success');
+}
+
+async function autoValidate(playerId,answer){
+  const q=S.questions[S.currentQ];
+  const isManual=S.settings.corrMode==='manual'||(S.settings.corrMode==='mixed'&&['open','hotspot','scale','secret'].includes(q.type));
+  if(isManual)return;
+  const respData=load(S.code,'responses_'+S.currentQ,{});
+  if(!respData[playerId]||respData[playerId].validated!==undefined)return;
+  let correct=false;
+  const answerNum = typeof answer==='string' ? parseInt(answer) : answer; // normalize type
+  if(q.type==='qcm'||q.type==='truefalse') correct=q.correct.includes(answerNum);
+  else if(q.type==='scale'){
+    const tol=q.scaleTolerance||10;
+    correct=Math.abs(answer-(q.correctScale||50))<=tol;
+  } else if(q.type==='open'){
+    correct=(answer||'').toLowerCase().trim()===(q.answer||'').toLowerCase().trim();
+  } else if(q.type==='hotspot'&&q.correctPin&&answer){
+    const hsResult=checkHotspotAnswer(answer,q);
+    if(hsResult===null)return;
+    correct=hsResult;
+  }
+  // Speed bonus: 70-100% of points based on answer speed
+  let pts=0;
+  if(correct){
+    const qData=load(S.code,'current_question',null);
+    const startedAt=qData?.startedAt||Date.now();
+    const resp=load(S.code,'responses_'+S.currentQ,{})?.[playerId];
+    const answeredAt=resp?.ts||Date.now();
+    const elapsed=Math.max(0,(answeredAt-startedAt)/1000);
+    const timerTotal=S.settings?.timer||30;
+    const ratio=Math.max(0,Math.min(1,1-(elapsed/timerTotal)));
+    const multiplier=0.7+0.3*ratio;
+    pts=Math.round(q.points*multiplier);
+  }
+  // Load fresh data to avoid overwriting other players' responses
+  const freshResp=load(S.code,'responses_'+S.currentQ,{})||{};
+  if(!freshResp[playerId])freshResp[playerId]={};
+  freshResp[playerId].validated=correct;
+  freshResp[playerId].points=pts;
+  _cacheSet(S.code,'responses_'+S.currentQ,freshResp);
+  // Save validation to player's sub-path
+  const existing_r=freshResp[playerId];
+  window._fbSet(window._fbRef(window._fbDb,'rooms/'+S.code+'/responses_'+S.currentQ+'/'+playerId), {...existing_r,validated:correct,points:pts});
+  const players=load(S.code,'players',{})||{};
+  if(players[playerId]){players[playerId].score=(players[playerId].score||0)+pts;_cacheSet(S.code,'players',players);save(S.code,'players',players);}
+  if(!S.streaks)S.streaks={};
+  S.streaks[playerId]=correct?(S.streaks[playerId]||0)+1:0;
+  await broadcast(S.code,'response_validated',{playerId,correct,points:pts,qIndex:S.currentQ,streak:S.streaks[playerId]});
+  writeGameState('validated',{validations:buildValidations()});
+  renderHostResponses(false);
+  checkAllAnswered();
+}
+
+function nextQuestion(){
+  clearInterval(S.timerInterval);
+  showLeaderboard(S.currentQ<S.questions.length-1);
+}
+
+async function showLeaderboard(hasNext){
+  const players=load(S.code,'players',{});
+  // Always set id from key to ensure it's correct
+  Object.entries(players).forEach(([id,p])=>{p.id=id;});
+  const sorted=Object.values(players).filter(p=>!p.isHost).sort((a,b)=>b.score-a.score);
+  document.getElementById('lb-sub').textContent=hasNext?`Après Q${S.currentQ+1}/${S.questions.length}`:'Résultats finaux 🏆';
+  const btn=document.getElementById('lb-continue-btn');
+  btn.textContent=hasNext?'Question suivante →':'Voir le podium final';
+  btn.style.display=S.role==='host'?'inline-flex':'none';
+  document.getElementById('lb-list').innerHTML=sorted.map((p,i)=>{
+    const streak=(S.streaks&&p.id&&S.streaks[p.id])||0;
+    const flameHtml=streak>=3?`<span title="${streak} bonnes réponses d'affilée !" style="font-size:14px;margin-left:4px">🔥${streak>3?'<span style="font-size:10px;vertical-align:middle">x'+streak+'</span>':''}</span>`:'';
+    const rankIcon=i===0?'👑':i===1?'🥈':i===2?'🥉':`<span style="font-size:13px;color:var(--muted)">#${i+1}</span>`;
+    const isMe=p.name===S.playerName;
+    return`<div class="lb-item" style="${isMe?'border-color:var(--accent);background:var(--adim)':''}">
+      <div class="lb-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}" style="font-size:${i<3?'20':'14'}px">${rankIcon}</div>
+      <div class="avatar" style="${isMe?'background:var(--adim2);color:var(--accent)':''}">${initials(p.name)}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:14px;display:flex;align-items:center;gap:4px">${p.name}${isMe?' <span class="badge badge-accent" style="font-size:10px">toi</span>':''}${flameHtml}</div>${p.team?`<div class="tm" style="font-size:11px">${p.team}</div>`:''}</div>
+      <div class="lb-score">${p.score} pts</div>
+    </div>`;
+  }).join('');
+  const lbData={hasNext,scores:sorted.map(p=>({name:p.name,score:p.score,team:p.team,id:p.id})),streaks:S.streaks||{},qIndex:S.currentQ,ts:Date.now()};
+  save(S.code,'leaderboard_state',lbData); // save for players who miss the broadcast
+  await broadcast(S.code,'show_leaderboard',lbData);
+  showScreen('sc-lb');
+}
+
+function continueFromLb(){
+  if(S.currentQ>=S.questions.length-1){showFinal();}
+  else{S.currentQ++;showHostQ();}
+}
+
+function showFinal(){
+  const players=load(S.code,'players',{});
+  const sorted=Object.values(players).filter(p=>!p.isHost).sort((a,b)=>b.score-a.score);
+  document.getElementById('final-lb').innerHTML=sorted.map((p,i)=>`
+    <div class="lb-item">
+      <div class="lb-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${['🥇','🥈','🥉'][i]||'#'+(i+1)}</div>
+      <div class="avatar">${initials(p.name)}</div>
+      <div><div style="font-weight:500">${p.name}</div>${p.team?`<div class="tm" style="font-size:11px">${p.team}</div>`:''}</div>
+      <div class="lb-score">${p.score} pts</div>
+    </div>`).join('');
+  broadcast(S.code,'game_over',{});
+  showScreen('sc-final');
+  launchConfetti();
+  // Write final game_state so players see the results
+  writeGameState('ended',{});
+  // Add replay button for host
+  if(S.role==='host'){
+    const fb=document.getElementById('final-btns');
+    if(fb&&!document.getElementById('replay-btn')){
+      const rb=document.createElement('button');
+      rb.id='replay-btn'; rb.className='btn btn-success';
+      rb.textContent='🔁 Rejouer'; rb.onclick=replayQuiz;
+      fb.insertBefore(rb,fb.firstChild);
+    }
+  }
+}
+
+// =====================================================================
+// GAME PLAYER
+// =====================================================================
+let playerAnswered=false;
+function showPlayerQ(q,timer,mySecret=null){
+  // Don't re-show if already answered this question
+  if(playerAnswered && q.id && S.questions[S.currentQ] && q.id===S.questions[S.currentQ].id){
+    console.log('[QN] showPlayerQ SKIPPED - already answered Q'+S.currentQ);
+    return;
+  }
+  console.log('[QN] showPlayerQ called, q type:',q.type,'timer:',timer);
+  showScreen('sc-game-player');
+  playerAnswered=false;
+  document.getElementById('player-prog').innerHTML=S.questions.map((_,i)=>`<div class="pdot ${i<S.currentQ?'done':i===S.currentQ?'cur':''}"></div>`).join('');
+  document.getElementById('player-q-type').textContent=TYPE_LABELS[q.type]||q.type;
+  document.getElementById('player-q-type').className='badge '+(TYPE_BADGE[q.type]||'badge-gray');
+  document.getElementById('player-q-text').textContent=q.text;
+  document.getElementById('player-score').textContent=S.myScore+' pts';
+  document.getElementById('player-feedback').style.display='none';
+  document.getElementById('player-media').innerHTML=renderMediaPlayer(q);
+
+  // Secret reveal
+  const sr=document.getElementById('secret-reveal-card');
+  if(q.type==='secret'&&mySecret!=null){
+    sr.style.display='block';
+    document.getElementById('my-secret-num').textContent=mySecret;
+  } else { sr.style.display='none'; }
+
+  const area=document.getElementById('player-ans-area');
+
+  if(q.type==='qcm'||q.type==='truefalse'){
+    area.innerHTML=`<div class="ans-grid">${q.options.map((o,i)=>`
+      <button class="ans-btn" id="pb-ans-${i}" onclick="submitAnswer(${i},'${q.type}')">
+        <div class="ans-letter">${String.fromCharCode(65+i)}</div>${o}
+      </button>`).join('')}</div>`;
+  } else if(q.type==='open'||q.type==='secret'){
+    area.innerHTML=`<div class="mt8">
+      <input type="text" id="open-input" placeholder="${q.type==='secret'?'Ta réponse (en accord avec ton numéro)...':'Ta réponse...'}" autocomplete="off">
+      <button class="btn btn-primary btn-full" onclick="submitOpen()">Envoyer →</button>
+    </div>`;
+  } else if(q.type==='scale'){
+    const min=q.scaleMin||0, max=q.scaleMax||100;
+    const mid=Math.floor((min+max)/2);
+    area.innerHTML=`<div class="scale-wrap mt8" id="scale-area">
+      <div class="flex jb mb4"><span class="tm" style="font-size:12px">${min}</span><span class="tm" style="font-size:12px">${max}</span></div>
+      <div class="scale-track" id="scale-track">
+        <div class="scale-fill" id="scale-fill" style="width:50%"></div>
+        <div class="scale-thumb" id="scale-thumb" style="left:50%"></div>
+      </div>
+      <div class="scale-val" id="scale-val">${mid}</div>
+    </div>
+    <button class="btn btn-primary btn-full mt8" onclick="submitScale()">Envoyer →</button>`;
+    setTimeout(()=>initScale(min,max,mid),50);
+  } else if(q.type==='hotspot'){
+    if(q.mediaUrl&&q.mediaType==='image'){
+      area.innerHTML=`<div class="tm mb8" style="font-size:13px">Clique sur l'image pour placer ton pin :</div>
+      <div class="hs-wrap" id="hs-wrap">
+        <img src="${q.mediaUrl}" id="hs-img" alt="" draggable="false">
+        <div class="hs-overlay" id="hs-overlay" onclick="placePin(event)"></div>
+        <div id="hs-pin" style="display:none" class="hs-pin">📍</div>
+      </div>
+      <button class="btn btn-primary btn-full mt8" id="hs-submit-btn" onclick="submitHotspot()" disabled>Confirmer mon pin →</button>`;
+    } else {
+      area.innerHTML='<div class="tm" style="color:var(--red)">⚠ Pas d\'image pour cette question.</div>';
+    }
+  }
+
+  startTimer('player',timer,()=>{if(!playerAnswered)forceTimeout();});
+}
+
+// Scale interaction
+let scaleState={min:0,max:100,val:50,dragging:false};
+function initScale(min,max,init){
+  scaleState={min,max,val:init,dragging:false};
+  const track=document.getElementById('scale-track');
+  if(!track)return;
+  const thumb=document.getElementById('scale-thumb');
+  const fill=document.getElementById('scale-fill');
+  const valEl=document.getElementById('scale-val');
+  const update=(v)=>{
+    v=Math.max(min,Math.min(max,v));
+    scaleState.val=v;
+    const pct=((v-min)/(max-min)*100);
+    fill.style.width=pct+'%';
+    thumb.style.left=pct+'%';
+    valEl.textContent=v;
+  };
+  const getVal=(e)=>{
+    const rect=track.getBoundingClientRect();
+    const x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
+    const pct=Math.max(0,Math.min(1,x/rect.width));
+    return Math.round(pct*(max-min)+min);
+  };
+  thumb.onmousedown=thumb.ontouchstart=(e)=>{e.preventDefault();scaleState.dragging=true;};
+  track.onclick=(e)=>{update(getVal(e));};
+  document.onmousemove=document.ontouchmove=(e)=>{if(scaleState.dragging)update(getVal(e));};
+  document.onmouseup=document.ontouchend=()=>{scaleState.dragging=false;};
+}
+
+function placePin(e){
+  const wrap=document.getElementById('hs-wrap');
+  const img=document.getElementById('hs-img');
+  if(!wrap||!img)return;
+  const rect=img.getBoundingClientRect();
+  const x=((e.clientX-rect.left)/rect.width*100);
+  const y=((e.clientY-rect.top)/rect.height*100);
+  const pin=document.getElementById('hs-pin');
+  pin.style.display='flex';
+  pin.style.left=x+'%';
+  pin.style.top=y+'%';
+  pin.dataset.x=x; pin.dataset.y=y;
+  document.getElementById('hs-submit-btn').disabled=false;
+}
+
+function submitHotspot(){
+  if(playerAnswered)return;
+  const pin=document.getElementById('hs-pin');
+  if(!pin||pin.style.display==='none'){notify('Clique sur l\'image d\'abord','error');return;}
+  const x=parseFloat(pin.dataset.x), y=parseFloat(pin.dataset.y);
+  saveAndSendAnswer({x,y});
+}
+
+function submitScale(){
+  if(playerAnswered)return;
+  saveAndSendAnswer(scaleState.val);
+}
+
+function submitAnswer(idx,type){
+  if(playerAnswered)return;
+  document.querySelectorAll('.ans-btn').forEach(b=>{b.disabled=true;});
+  document.getElementById('pb-ans-'+idx)?.classList.add('sel');
+  saveAndSendAnswer(idx);
+}
+
+function submitOpen(){
+  if(playerAnswered)return;
+  const inp=document.getElementById('open-input');
+  if(!inp||!inp.value.trim()){notify('Écris ta réponse !','error');return;}
+  inp.disabled=true;
+  document.querySelectorAll('#player-ans-area button').forEach(b=>b.disabled=true);
+  const secretNum=document.getElementById('my-secret-num')?.textContent;
+  saveAndSendAnswer(inp.value.trim(),secretNum&&secretNum!=='--'?parseInt(secretNum):undefined);
+}
+
+async function saveAndSendAnswer(answer,secret=undefined){
+  if(playerAnswered)return;
+  playerAnswered=true;
+  clearInterval(S.timerInterval);
+  const payload={answer,ts:Date.now()};
+  if(secret!==undefined)payload.secret=secret;
+  // Save ONLY own response to sub-path to avoid overwriting other players
+  _cacheSet(S.code,'resp_'+S.currentQ+'_'+S.myId, payload);
+  await window._fbSet(window._fbRef(window._fbDb,'rooms/'+S.code+'/responses_'+S.currentQ+'/'+S.myId), payload);
+  console.log('[QN] player_answered broadcast for Q'+S.currentQ+' answer:'+JSON.stringify(answer));
+  await broadcast(S.code,'player_answered',{playerId:S.myId,answer,secret,qIndex:S.currentQ});
+  showFeedback('⏳','Réponse envoyée !','En attente de la correction...');
+}
+
+function forceTimeout(){
+  playerAnswered=true;
+  showFeedback('⏰','Temps écoulé !','Tu n\'as pas répondu à temps.');
+}
+
+function showFeedback(icon,text,sub){
+  const fb=document.getElementById('player-feedback');
+  fb.style.display='block';
+  document.getElementById('pfb-icon').textContent=icon;
+  document.getElementById('pfb-text').textContent=text;
+  document.getElementById('pfb-sub').textContent=sub;
+}
+
+// =====================================================================
+// MESSAGE HANDLER
+// =====================================================================
+function handleMsg(msg){
+  if(msg.code!==S.code)return;
+  if(S.role==='host')handleHostMsg(msg);
+  else handlePlayerMsg(msg);
+}
+
+function handleHostMsg(msg){
+  if(msg.type==='player_joined'){renderLobbyPlayers();notify(msg.data.name+' a rejoint !','success');}
+  if(msg.type==='player_answered'&&msg.data.qIndex===S.currentQ){
+    // Update cache with this response immediately
+    const rd=load(S.code,'responses_'+S.currentQ,{})||{};
+    if(!rd[msg.data.playerId]){rd[msg.data.playerId]={answer:msg.data.answer,ts:Date.now()};_cacheSet(S.code,'responses_'+S.currentQ,rd);}
+    renderHostResponses(false);
+    autoValidate(msg.data.playerId, msg.data.answer);
+  }
+  if(msg.type==='bid_placed'&&msg.data.qIndex===S.currentQ)renderBidBids();
+  if(msg.type==='bid_answer_update'&&msg.data.qIndex===S.currentQ)renderBidBids();
+  if(msg.type==='uc_hint_sent'&&msg.data.qIndex===S.currentQ){
+    // Accumulate hint in allHints cache
+    const allH=load(S.code,'uc_all_hints_'+S.currentQ,{})||{};
+    const ph=msg.data.phase||0;
+    if(!allH[ph])allH[ph]={};
+    allH[ph][msg.data.playerId]=msg.data.hint;
+    _cacheSet(S.code,'uc_all_hints_'+S.currentQ,allH);
+    save(S.code,'uc_all_hints_'+S.currentQ,allH);
+    renderUCHints();
+  }
+  if(msg.type==='uc_vote_cast'&&msg.data.qIndex===S.currentQ)renderUCVotes();
+}
+
+function handlePlayerMsg(msg){
+  if(msg.type!=='player_joined')console.log('[QN] handlePlayerMsg:',msg.type,'qIndex:',msg.data?.qIndex,'currentQ:',S.currentQ);
+  switch(msg.type){
+    case 'game_start':
+      S.currentQ=0;
+      loadAsync(S.code,'info').then(info=>{
+        if(info){S.questions=info.questions;_cacheSet(S.code,'info',info);}
+      });
+      showScreen('sc-game-player');
+      document.getElementById('player-q-text').textContent='La partie commence !';
+      document.getElementById('player-ans-area').innerHTML='<div class="tm tc" style="padding:20px;font-size:32px">🎮</div>';
+      document.getElementById('player-prog').innerHTML='';
+      document.getElementById('player-score').textContent=S.myScore+' pts';
+      document.getElementById('player-q-type').textContent='';
+      document.getElementById('player-media').innerHTML='';
+      document.getElementById('player-feedback').style.display='none';
+      document.getElementById('secret-reveal-card').style.display='none';
+      break;
+    case 'question':
+      // Only show new question if it's different from current
+      if(msg.data.qIndex===S.currentQ && playerAnswered){
+        console.log('[QN] question msg ignored - same Q and already answered');
+        break;
+      }
+      S.currentQ=msg.data.qIndex;
+      playerAnswered=false; // reset for new question
+      {
+        const cachedInfo=load(S.code,'info');
+        if(cachedInfo&&cachedInfo.questions){
+          S.questions=cachedInfo.questions;
+          const mySecret=msg.data.secrets?msg.data.secrets[S.myId]:null;
+          showPlayerQ(msg.data.question,msg.data.timer,mySecret);
+        } else {
+          loadAsync(S.code,'info').then(info=>{
+            if(info)S.questions=info.questions;
+            const mySecret=msg.data.secrets?msg.data.secrets[S.myId]:null;
+            showPlayerQ(msg.data.question,msg.data.timer,mySecret);
+          });
+        }
+      }
+      break;
+    case 'question_end':
+      clearInterval(S.timerInterval);
+      if(!playerAnswered)showFeedback('⏰','Temps écoulé !','Tu n\'as pas répondu à temps.');
+      break;
+    case 'reveal': handleReveal(msg.data); break;
+    case 'response_validated':
+      if(msg.data.playerId===S.myId){
+        const c=msg.data.correct;
+        S.myScore+=msg.data.points||0;
+        const scoreEl=document.getElementById('player-score');
+        if(scoreEl)scoreEl.textContent=S.myScore+' pts';
+        const streak=msg.data.streak||0;
+        if(c){playCorrectSound();}else{playWrongSound();}
+        showFeedbackWithReaction(c,msg.data.points,streak);
+        document.querySelector('.ans-btn.sel')?.classList.add(c?'correct':'wrong');
+      }
+      break;
+    case 'validate_all':
+      if(msg.data.qIndex===S.currentQ){
+        S.myScore+=msg.data.points||0;
+        document.getElementById('player-score').textContent=S.myScore+' pts';
+        showFeedback('✅','Validé ! +'+msg.data.points+' pts','L\'hôte a validé ta réponse.');
+      }
+      break;
+    case 'show_leaderboard': showPlayerLb(msg.data); break;
+    case 'kicked_all': notify('Tu as été retiré.','error'); goHome(); break;
+    case 'game_over': break;
+    case 'bid_start':
+      S.currentQ=msg.data.qIndex;{const ib=load(S.code,'info');if(ib)S.questions=ib.questions;}
+      showPlayerBid(msg.data.question);break;
+    case 'bid_answer_phase': if(msg.data.qIndex===S.currentQ)showPlayerBidAnswerPhase(msg.data.timer);break;
+    case 'bid_time_up': clearInterval(S.timerInterval);finalizeBidAnswers();break;
+    case 'uc_start':
+      S.currentQ=msg.data.qIndex;{const iu=load(S.code,'info');if(iu)S.questions=iu.questions;}
+      showPlayerUC(msg.data.wordMap);break;
+    case 'uc_hint_phase': if(msg.data.qIndex===S.currentQ)renderUCPlayerPhase(msg.data.phase);break;
+    case 'uc_vote_phase': if(msg.data.qIndex===S.currentQ)renderUCPlayerPhase(3);break;
+    case 'uc_result': if(msg.data.qIndex===S.currentQ)showUCResult(msg.data);break;
+  }
+}
+
+function handleReveal(data){
+  const q=S.questions[S.currentQ];
+  if(q&&(q.type==='qcm'||q.type==='truefalse')&&data.correct){
+    document.querySelectorAll('.ans-btn').forEach((b,i)=>{if(data.correct.includes(i))b.classList.add('correct');});
+  }
+}
+
+function showPlayerLb(data){
+  document.getElementById('lb-sub').textContent=data.hasNext?'Classement en cours':'Résultats finaux 🏆';
+  document.getElementById('lb-continue-btn').style.display='none';
+  document.getElementById('lb-list').innerHTML=(data.scores||[]).map((p,i)=>{
+    const streak=(data.streaks&&p.id&&data.streaks[p.id])||0;
+    const flameHtml=streak>=3?`<span style="font-size:13px;margin-left:3px">🔥${streak>3?streak:''}</span>`:'';
+    const rankIcon=i===0?'👑':i===1?'🥈':i===2?'🥉':'#'+(i+1);
+    const isMe=p.name===S.playerName;
+    return`<div class="lb-item" style="${isMe?'border-color:var(--accent);background:var(--adim)':''}">
+      <div class="lb-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}" style="font-size:${i<3?'20':'14'}px">${rankIcon}</div>
+      <div class="avatar" style="${isMe?'background:var(--adim2);color:var(--accent)':''}">${initials(p.name)}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:14px">${p.name}${isMe?' <span class="badge badge-accent" style="font-size:10px">toi</span>':''}${flameHtml}</div>${p.team?`<div class="tm" style="font-size:11px">${p.team}</div>`:''}</div>
+      <div class="lb-score">${p.score} pts</div>
+    </div>`;
+  }).join('');
+  showScreen('sc-lb');
+}
+
+// =====================================================================
+// POLLING
+// =====================================================================
+let _pollPlayer=null, _pollHost=null;
+function startPlayerPolling(){
+  if(!window._fbDb||!window._fbOnValue||!window._fbRef){
+    setTimeout(startPlayerPolling,300);return;
+  }
+  console.log('[QN] startPlayerPolling: using state-based sync');
+  // Listen to game_state - host writes this after every action
+  const stateRef=window._fbRef(window._fbDb,'rooms/'+S.code+'/game_state');
+  window._fbOnValue(stateRef,(snap)=>{
+    const gs=snap.val();
+    if(!gs)return;
+    console.log('[QN] game_state received: phase='+gs.phase+' q='+gs.currentQ+' ts='+gs.ts);
+    handleGameState(gs);
+  });
+}
+
+function handleGameState(gs){
+  if(!gs||!gs.phase)return;
+  // Load questions if needed
+  if((!S.questions||S.questions.length===0)&&gs.questions){
+    S.questions=gs.questions;
+  }
+  const phase=gs.phase;
+  const qIdx=gs.currentQ||0;
+
+  if(phase==='bid_answer_phase'){
+    if(gs.qIndex===S.currentQ){
+      const elapsed=Math.floor((Date.now()-(gs.startedAt||Date.now()))/1000);
+      const remaining=Math.max(3,(gs.timer||30)-elapsed);
+      if(remaining>0) showPlayerBidAnswerPhase(remaining);
+    }
+    return;
+  }
+  if(phase==='uc_start'){
+    S.currentQ=gs.qIndex||0;
+    playerAnswered=false;
+    if(gs.wordMap&&gs.wordMap[S.myId]){
+      showPlayerUC(gs.wordMap);
+    }
+    return;
+  }
+  if(phase==='uc_hint_phase'){
+    if(gs.qIndex===S.currentQ){
+      if(gs.allHints){
+        save(S.code,'uc_all_hints_'+S.currentQ,gs.allHints);
+        _cacheSet(S.code,'uc_all_hints_'+S.currentQ,gs.allHints);
+      }
+      // Use ts to avoid re-rendering same phase state
+      const ucPhaseKey='uc_phase_'+S.currentQ+'_'+gs.phase+'_'+(gs.ts||0);
+      if(ucPhaseKey!==S._lastUcPhaseKey){
+        S._lastUcPhaseKey=ucPhaseKey;
+        console.log('[QN] UC rendering phase '+gs.phase);
+        // Make sure we're on UC screen
+        if(!document.getElementById('sc-uc-player').classList.contains('active')){
+          showScreen('sc-uc-player');
+        }
+        renderUCPlayerPhase(gs.phase||0);
+      }
+    }
+    return;
+  }
+  if(phase==='uc_vote_phase'){
+    if(gs.qIndex===S.currentQ){
+      if(gs.allHints){save(S.code,'uc_all_hints_'+S.currentQ,gs.allHints);_cacheSet(S.code,'uc_all_hints_'+S.currentQ,gs.allHints);}
+      renderUCPlayerPhase(3);
+    }
+    return;
+  }
+  if(phase==='question'){
+    const q=gs.question;
+    if(!q)return;
+    // Always show if it's a new question index
+    if(qIdx!==S.currentQ){
+      S.currentQ=qIdx;
+      playerAnswered=false;
+    }
+    if(!playerAnswered){
+      const mySecret=gs.secrets?gs.secrets[S.myId]:null;
+      const elapsed=Math.floor((Date.now()-(gs.startedAt||Date.now()))/1000);
+      const remaining=Math.max(3,(gs.timer||30)-elapsed);
+      if(remaining>0){
+        console.log('[QN] showing question '+qIdx+' type:'+q.type+' remaining:'+remaining+'s');
+        // Route to correct player screen based on question type
+        if(q.type==='bid'){
+          showPlayerBid(q);
+        } else if(q.type==='undercover'){
+          // UC handled by uc_start phase
+        } else {
+          showPlayerQ(q,remaining,mySecret);
+        }
+      }
+    }
+  }
+  else if(phase==='uc_result'){
+    if(gs.qIndex===S.currentQ){
+      showUCResult(gs);
+    }
+    return;
+  }
+  else if(phase==='leaderboard'){
+    // Show leaderboard
+    if(gs.lbTs&&gs.lbTs!==S._lastLbTs){
+      S._lastLbTs=gs.lbTs;
+      console.log('[QN] showing leaderboard hasNext:'+gs.hasNext);
+      showPlayerLb({scores:gs.scores,streaks:gs.streaks,hasNext:gs.hasNext});
+    }
+  }
+  else if(phase==='validated'){
+    // My answer was validated
+    if(gs.validations&&gs.validations[S.myId]){
+      const v=gs.validations[S.myId];
+      if(v.ts&&v.ts!==S._lastValidTs){
+        S._lastValidTs=v.ts;
+        S.myScore=v.totalScore||S.myScore;
+        const scoreEl=document.getElementById('player-score');
+        if(scoreEl)scoreEl.textContent=S.myScore+' pts';
+        const streak=v.streak||0;
+        const streakMsg=streak>=3?' 🔥x'+streak:'';
+        showFeedback(
+          v.correct?'✅':'❌',
+          v.correct?'Bonne réponse ! +'+v.points+' pts'+streakMsg:'Mauvaise réponse',
+          v.correct?(streak>=2?streak+" bonnes d'affilée !":'Bien joué !'):'Dommage !'
+        );
+        if(v.correct){
+          document.querySelector('.ans-btn.sel')?.classList.add('correct');
+        } else {
+          document.querySelector('.ans-btn.sel')?.classList.add('wrong');
+        }
+      }
+    }
+  }
+  else if(phase==='ended'){
+    // Game over - show final podium to players
+    console.log('[QN] Game ended - showing final screen to player');
+    stopMusic();
+    // Build final leaderboard from scores in game_state
+    const finalScores=gs.scores||[];
+    const lbHtml=finalScores.map((p,i)=>{
+      const isMe=p.name===S.playerName;
+      const icon=i===0?'👑':i===1?'🥈':i===2?'🥉':'#'+(i+1);
+      return `<div class="lb-item" style="${isMe?'border-color:var(--accent);background:var(--adim)':''}">
+        <div class="lb-rank" style="font-size:${i<3?'20':'14'}px">${icon}</div>
+        <div class="avatar" style="${isMe?'background:var(--adim2);color:var(--accent)':''}">${initials(p.name)}</div>
+        <div style="flex:1"><div style="font-weight:600;font-size:14px">${p.name}${isMe?' <span class="badge badge-accent" style="font-size:10px">toi</span>':''}</div></div>
+        <div class="lb-score">${p.score} pts</div>
+      </div>`;
+    }).join('');
+    // Show leaderboard screen with final results
+    document.getElementById('lb-title').textContent='🏆 Résultats finaux';
+    document.getElementById('lb-sub').textContent='Partie terminée !';
+    document.getElementById('lb-list').innerHTML=lbHtml;
+    document.getElementById('lb-continue-btn').style.display='none';
+    showScreen('sc-lb');
+    launchConfetti();
+  }
+}
+
+function startHostPolling(){
+  const db=window._fbDb;
+  if(!db){setTimeout(startHostPolling,300);return;}
+
+  // Listen to players joining
+  listenPath(S.code,'players',(players)=>{
+    if(!players)return;
+    _cacheSet(S.code,'players',players);
+    S.players=players;
+    if(document.getElementById('sc-host-lobby').classList.contains('active'))
+      renderLobbyPlayers();
+  });
+
+  // Listen to NEW messages using onChildAdded
+  listenMsgs(S.code,(msg)=>{
+    if(!msg||!msg.type)return;
+    handleHostMsg(msg);
+  });
+
+  // Listen to responses - fires whenever a player answers
+  listenPath(S.code,'responses_'+S.currentQ,(data)=>{
+    if(!data)return;
+    // MERGE with existing cache - don't lose other players' validated responses
+    const existing=load(S.code,'responses_'+S.currentQ,{})||{};
+    const merged={...existing,...data};
+    // Keep validated state from existing if newer data doesn't have it
+    Object.keys(existing).forEach(pid=>{
+      if(existing[pid]?.validated!==undefined && merged[pid]?.validated===undefined){
+        merged[pid]={...merged[pid],validated:existing[pid].validated,points:existing[pid].points};
+      }
+    });
+    _cacheSet(S.code,'responses_'+S.currentQ,merged);
+    if(S.questions&&S.questions[S.currentQ]){
+      Object.entries(data).forEach(([pid,resp])=>{
+        if(resp&&resp.validated===undefined&&resp.answer!==undefined){
+          autoValidate(pid, resp.answer);
+        }
+      });
+    }
+    if(document.getElementById('sc-game-host').classList.contains('active')){
+      if(bidPhase==='bidding'||bidPhase==='answering')renderBidBids();
+      else if(bidPhase==='validating')renderBidValidation();
+      else renderHostResponses(false);
+    }
+    if(document.getElementById('sc-uc-host').classList.contains('active')){
+      if(ucState.phase<3)renderUCHints();else renderUCVotes();
+    }
+  });
+}
+
+// =============================================================================
+// =============================================================================
+// THEMES & WORD PAIRS
+// =============================================================================
+const THEMES_ENCHERE=[
+  'Personnages féminins dans Naruto','Pokémon de type Feu','Techniques du Sharingan',
+  'Personnages de One Piece','Jeux Nintendo Switch','Capacités de Goku',
+  'Armes dans Zelda BOTW','Personnages de League of Legends','Mangas shōnen célèbres',
+  'Noms de Stand dans JoJo','Pokémon légendaires','Personnages de Attack on Titan',
+  'Évolutions de Évoli','Jeux de la PS4','Films Marvel Phase 1',
+];
+const THEMES_SECRET=[
+  'Le plus fort des Pokémon','La meilleure technique de Naruto','Le meilleur perso de One Piece',
+  'Le plus puissant Titan dans AoT','Le meilleur jeu PlayStation','La meilleure arme dans Zelda',
+  'Le champion le plus fort dans LoL','La meilleure forme de Goku','Le Pokémon le plus rare',
+];
+const UC_WORD_PAIRS=[
+  ['Chat','Chien'],['Goku','Vegeta'],['Naruto','Sasuke'],['Pikachu','Evoli'],
+  ['Fortnite','Minecraft'],['PlayStation','Xbox'],['Katana','Épée'],['Ninja','Samouraï'],
+  ['Mer','Montagne'],['Dragon','Licorne'],['Soleil','Lune'],['Voiture','Moto'],
+];
+
+// Patch SAMPLES to include bid/undercover
+const BID_SAMPLE = {type:'bid',text:'',bidTheme:'Personnages féminins dans Naruto',bidTimer:30,options:[],correct:[],answer:'',points:200,mediaType:'none',mediaUrl:'',scaleMin:0,scaleMax:100,correctScale:50,scaleTolerance:10,secretTheme:'',secretMin:1,secretMax:100,ucWordCivil:'',ucWordImpostor:''};
+const UC_SAMPLE = {type:'undercover',text:'',ucWordCivil:'Goku',ucWordImpostor:'Vegeta',bidTheme:'',bidTimer:30,options:[],correct:[],answer:'',points:300,mediaType:'none',mediaUrl:'',scaleMin:0,scaleMax:100,correctScale:50,scaleTolerance:10,secretTheme:'',secretMin:1,secretMax:100};
+
+// =============================================================================
+// BID & UC BUILDERS
+// =============================================================================
+function renderBidBuilder(q,i){
+  const typeOpts=['qcm','open','truefalse','hotspot','scale','secret','bid','undercover'].map(v=>`<option value="${v}"${q.type===v?' selected':''}>${{qcm:'QCM',open:'Réponse libre',truefalse:'Vrai/Faux',hotspot:'Pin sur image',scale:'Échelle',secret:'Mode Secret 🎲',bid:'Enchère 🎯',undercover:'Undercover 🕵️'}[v]}</option>`).join('');
+  return `<div class="qb" id="qb-${q.id}">
+    <div class="qb-head"><span class="qb-num">Q${i+1}</span><div class="flex gap8 ac"><select onchange="changeQType('${q.id}',this.value)" style="width:auto;margin-bottom:0;font-size:12px;padding:5px 10px">${typeOpts}</select><button class="btn btn-xs btn-danger" onclick="removeQ('${q.id}')">✕</button></div></div>
+    <div class="tm" style="font-size:12px;margin-bottom:8px;line-height:1.6;background:var(--s3);padding:8px;border-radius:var(--r)">🎯 <strong>Enchère</strong> — Chaque joueur mise un nombre, puis cite des éléments dans le timer. Mise non atteinte = 0 pt. Tu valides les réponses.</div>
+    <label>Thème custom</label>
+    <input type="text" placeholder="ex: Personnages féminins dans Naruto" value="${q.bidTheme||''}" onchange="updateQ('${q.id}','bidTheme',this.value)">
+    <label>Thème prédéfini</label>
+    <select onchange="if(this.value){updateQ('${q.id}','bidTheme',this.value);renderQList()}" style="margin-bottom:10px">
+      <option value="">— Choisir —</option>
+      ${THEMES_ENCHERE.map(t=>`<option value="${t}"${q.bidTheme===t?' selected':''}>${t}</option>`).join('')}
+    </select>
+    <label>Timer réponse (secondes)</label>
+    <input type="number" value="${q.bidTimer||30}" min="10" max="300" onchange="updateQ('${q.id}','bidTimer',parseInt(this.value))">
+    <div class="flex ac gap8 mt8"><label style="margin:0;white-space:nowrap">Points :</label><input type="number" value="${q.points}" min="10" max="2000" step="10" onchange="updateQ('${q.id}','points',parseInt(this.value))" style="width:90px;margin-bottom:0"></div>
+  </div>`;
+}
+
+function renderUCBuilder(q,i){
+  const typeOpts=['qcm','open','truefalse','hotspot','scale','secret','bid','undercover'].map(v=>`<option value="${v}"${q.type===v?' selected':''}>${{qcm:'QCM',open:'Réponse libre',truefalse:'Vrai/Faux',hotspot:'Pin sur image',scale:'Échelle',secret:'Mode Secret 🎲',bid:'Enchère 🎯',undercover:'Undercover 🕵️'}[v]}</option>`).join('');
+  return `<div class="qb" id="qb-${q.id}">
+    <div class="qb-head"><span class="qb-num">Q${i+1}</span><div class="flex gap8 ac"><select onchange="changeQType('${q.id}',this.value)" style="width:auto;margin-bottom:0;font-size:12px;padding:5px 10px">${typeOpts}</select><button class="btn btn-xs btn-danger" onclick="removeQ('${q.id}')">✕</button></div></div>
+    <div class="tm" style="font-size:12px;margin-bottom:8px;line-height:1.6;background:var(--s3);padding:8px;border-radius:var(--r)">🕵️ <strong>Undercover</strong> — 1 imposteur/3 joueurs. 3 manches d'indices, vote final. Imposteurs gagnent s'il en reste au moins un.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div><label>Mot des civils</label><input type="text" placeholder="ex: Goku" value="${q.ucWordCivil||''}" onchange="updateQ('${q.id}','ucWordCivil',this.value)" style="margin-bottom:0"></div>
+      <div><label>Mot des imposteurs</label><input type="text" placeholder="ex: Vegeta" value="${q.ucWordImpostor||''}" onchange="updateQ('${q.id}','ucWordImpostor',this.value)" style="margin-bottom:0"></div>
+    </div>
+    <label>Paire prédéfinie</label>
+    <select onchange="applyUCPair('${q.id}',this.value)" style="margin-bottom:10px">
+      <option value="">— Choisir —</option>
+      ${UC_WORD_PAIRS.map((p,_i)=>`<option value="${_i}">${p[0]} / ${p[1]}</option>`).join('')}
+    </select>
+    <div class="flex ac gap8"><label style="margin:0;white-space:nowrap">Points :</label><input type="number" value="${q.points}" min="10" max="2000" step="10" onchange="updateQ('${q.id}','points',parseInt(this.value))" style="width:90px;margin-bottom:0"></div>
+  </div>`;
+}
+
+function applyUCPair(qid,idx){
+  const q=questions.find(q=>q.id==qid);if(!q)return;
+  const p=UC_WORD_PAIRS[parseInt(idx)];if(p){q.ucWordCivil=p[0];q.ucWordImpostor=p[1];renderQList();}
+}
+
+
+
+// =============================================================================
+// PREVIEW for bid/uc
+// =============================================================================
+function renderSpecialPreview(q){
+  document.getElementById('prev-label').textContent=`Q${prevIdx+1}/${questions.length} · ${q.type==='bid'?'Enchère 🎯':'Undercover 🕵️'}`;
+  const body=document.getElementById('prev-body');
+  if(q.type==='bid'){
+    body.innerHTML=`<div class="flex ac gap8 mb16"><span class="badge badge-orange">Enchère 🎯</span><span class="tm" style="font-size:12px">${q.points} pts</span></div>
+    <div style="font-size:15px;font-weight:600;margin-bottom:4px">Thème : ${q.bidTheme||'(non défini)'}</div>
+    <div class="tm mb16">Timer réponse : ${q.bidTimer}s</div>
+    <div class="tm mb8">Phase 1 — Chaque joueur mise son nombre d'éléments :</div>
+    <input class="bid-input" type="number" value="5" disabled style="opacity:.7;margin-bottom:16px">
+    <div class="tm mb8">Phase 2 — Timer de ${q.bidTimer}s, ils citent un élément à la fois :</div>
+    <div class="answer-tags"><span class="answer-tag">Sakura</span><span class="answer-tag">Hinata</span><span class="answer-tag">Tsunade</span></div>
+    <div class="bid-progress"><div class="bid-progress-fill" style="width:60%"></div></div>
+    <div class="tm mt16">Phase 3 — Tu vois la liste + la mise de chacun et tu valides.</div>`;
+  } else {
+    body.innerHTML=`<div class="flex ac gap8 mb16"><span class="badge" style="background:rgba(244,114,182,.13);color:#f472b6">Undercover 🕵️</span><span class="tm" style="font-size:12px">${q.points} pts</span></div>
+    <div class="flex gap8 mb16">
+      <div style="flex:1;background:var(--s2);border-radius:var(--r);padding:12px;text-align:center"><div class="tm" style="font-size:11px;margin-bottom:4px">MOT CIVILS</div><div style="font-size:20px;font-weight:700;color:var(--green)">${q.ucWordCivil||'?'}</div></div>
+      <div style="flex:1;background:var(--s2);border-radius:var(--r);padding:12px;text-align:center"><div class="tm" style="font-size:11px;margin-bottom:4px">MOT IMPOSTEURS</div><div style="font-size:20px;font-weight:700;color:var(--red)">${q.ucWordImpostor||'?'}</div></div>
+    </div>
+    <div class="uc-word-reveal">${q.ucWordCivil||'MOT CIVIL'}</div>
+    <div class="tm tc" style="font-size:12px">Civil · 3 manches d'indices · Vote final · 1 imposteur/3 joueurs</div>`;
+  }
+}
+
+// =============================================================================
+// BID MODE - HOST
+// =============================================================================
+let bidPhase='bidding';
+
+async function showHostBid(){
+  showScreen('sc-game-host');
+  const q=S.questions[S.currentQ];bidPhase='bidding';S.responses={};
+  document.getElementById('host-prog').innerHTML=S.questions.map((_,i)=>`<div class="pdot ${i<S.currentQ?'done':i===S.currentQ?'cur':''}"></div>`).join('');
+  document.getElementById('host-q-label').textContent=`Q${S.currentQ+1}/${S.questions.length}`;
+  document.getElementById('host-q-type').textContent='Enchère 🎯';
+  document.getElementById('host-q-type').className='badge badge-orange';
+  document.getElementById('host-q-pts').textContent=q.points+' pts';
+  document.getElementById('host-q-text').textContent='🎯 Thème : '+(q.bidTheme||'?');
+  document.getElementById('host-media-ref').innerHTML='';
+  document.getElementById('host-ans-ref').innerHTML='Phase 1 : les joueurs misent. Lance la phase réponse quand tous ont misé.';
+  const mb=document.getElementById('host-mode-badge');if(mb){mb.textContent='🎯 Enchère';mb.style.display='inline-block';mb.className='badge badge-orange';}
+  document.getElementById('val-all-btn').style.display='none';
+  document.getElementById('resp-count').textContent='0';document.getElementById('resp-list').innerHTML='';
+  {const _nb=document.getElementById('next-q-btn');if(_nb)_nb.textContent='Lancer les réponses →';}
+  {const _nb2=document.getElementById('next-q-btn');if(_nb2)_nb2.onclick=()=>startBidAnswering();}
+  await broadcast(S.code,'bid_start',{qIndex:S.currentQ,question:sanitizeQ(q)});
+  writeGameState('question',{question:sanitizeQ(q),timer:q.bidTimer||30,startedAt:Date.now()});
+  renderBidBids();
+}
+
+function renderBidBids(){
+  const players=load(S.code,'players',{});const bids=load(S.code,'bids_'+S.currentQ,{});
+  document.getElementById('resp-count').textContent=Object.keys(bids).length;
+  document.getElementById('resp-list').innerHTML=Object.entries(players).filter(([id,p])=>!p.isHost).map(([id,p])=>{
+    const b=bids[id];
+    return `<div class="resp-item"><div class="flex ac gap8"><div class="avatar" style="width:28px;height:28px;font-size:10px">${initials(p.name)}</div><div style="font-weight:500;font-size:13px">${p.name}</div></div>${b!==undefined?`<span class="badge badge-orange">Mise : <strong>${b}</strong></span>`:'<span class="badge badge-gray">En attente...</span>'}</div>`;
+  }).join('');
+}
+
+function startBidAnswering(){
+  const q=S.questions[S.currentQ];bidPhase='answering';
+  document.getElementById('host-ans-ref').innerHTML=`Phase 2 : timer de ${q.bidTimer}s. Les joueurs citent leurs éléments.`;
+  // Listen to bid answers in real-time
+  listenPath(S.code,'bid_answers_'+S.currentQ,(data)=>{
+    if(!data)return;
+    _cacheSet(S.code,'bid_answers_'+S.currentQ,data);
+    if(bidPhase==='answering'||bidPhase==='validating')renderBidValidation();
+  });
+  // Listen to bids
+  listenPath(S.code,'bids_'+S.currentQ,(data)=>{
+    if(!data)return;
+    _cacheSet(S.code,'bids_'+S.currentQ,data);
+  });
+  // Listen to validations
+  listenPath(S.code,'bid_validated_'+S.currentQ,(data)=>{
+    if(!data)return;
+    _cacheSet(S.code,'bid_validated_'+S.currentQ,data);
+    if(bidPhase==='validating')renderBidValidation();
+  });
+  {const _nb=document.getElementById('next-q-btn');if(_nb)_nb.textContent='Passer à la validation →';}
+  {const _nb2=document.getElementById('next-q-btn');if(_nb2)_nb2.onclick=()=>startBidValidating();}
+  broadcast(S.code,'bid_answer_phase',{timer:q.bidTimer,qIndex:S.currentQ});
+  writeGameState('bid_answer_phase',{timer:q.bidTimer,qIndex:S.currentQ,startedAt:Date.now()});
+  startTimer('host',q.bidTimer,()=>{broadcast(S.code,'bid_time_up',{});startBidValidating();});
+}
+
+function startBidValidating(){
+  clearInterval(S.timerInterval);bidPhase='validating';
+  document.getElementById('host-ans-ref').innerHTML='Phase 3 : valide les réponses. Vérifie si la mise est atteinte ET si les réponses correspondent au thème.';
+  {const _nb=document.getElementById('next-q-btn');if(_nb)_nb.textContent='Suivant →';}
+  {const _nb2=document.getElementById('next-q-btn');if(_nb2)_nb2.onclick=()=>nextQuestion();}
+  document.getElementById('val-all-btn').style.display='none';
+  broadcast(S.code,'bid_validate_phase',{});
+  renderBidValidation();
+}
+
+function renderBidValidation(){
+  const q=S.questions[S.currentQ];
+  const players=load(S.code,'players',{});const bids=load(S.code,'bids_'+S.currentQ,{});
+  const answers=load(S.code,'bid_answers_'+S.currentQ,{});const validated=load(S.code,'bid_validated_'+S.currentQ,{});
+  document.getElementById('resp-count').textContent=Object.keys(answers).length;
+  document.getElementById('resp-list').innerHTML=Object.entries(players).filter(([id,p])=>!p.isHost).map(([id,p])=>{
+    const bid=bids[id]||0;const ans=answers[id]||[];const val=validated[id];
+    const metBid=ans.length>=bid;
+    const ansHtml=ans.map((a,i)=>`<span class="answer-tag" style="font-size:12px">${i+1}. ${a}</span>`).join('');
+    let status='';
+    if(val===true)status=`<span class="badge badge-green">+${q.points} pts</span>`;
+    else if(val===false)status=`<span class="badge badge-red">0 pt</span>`;
+    else if(!metBid)status=`<span class="badge badge-red">0 pt — mise non atteinte</span>`;
+    else status=`<div class="flex gap8"><button class="btn btn-xs btn-success" onclick="validateBidResp('${id}',true)">✓ Valider</button><button class="btn btn-xs btn-danger" onclick="validateBidResp('${id}',false)">✗ Refuser</button></div>`;
+    return `<div class="resp-item" style="flex-direction:column;align-items:stretch;gap:8px">
+      <div class="flex jb ac"><div class="flex ac gap8"><div class="avatar" style="width:28px;height:28px;font-size:10px">${initials(p.name)}</div><div style="font-weight:500;font-size:13px">${p.name}</div></div><span class="badge ${metBid?'badge-green':'badge-red'}">Mise ${bid} · Cité ${ans.length} ${metBid?'✓':'✗'}</span></div>
+      <div class="answer-tags">${ansHtml||'<span class="tm" style="font-size:12px">Aucune réponse</span>'}</div>
+      <div class="flex jc">${status}</div>
+    </div>`;
+  }).join('');
+}
+
+async function validateBidResp(pid,correct){
+  const q=S.questions[S.currentQ];
+  // Save validation to sub-path
+  await window._fbSet(window._fbRef(window._fbDb,'rooms/'+S.code+'/bid_validated_'+S.currentQ+'/'+pid), correct);
+  const validated=load(S.code,'bid_validated_'+S.currentQ,{})||{};
+  validated[pid]=correct;
+  _cacheSet(S.code,'bid_validated_'+S.currentQ,validated);
+  const pts=correct?q.points:0;
+  const players=load(S.code,'players',{})||{};
+  if(players[pid]){players[pid].score=(players[pid].score||0)+pts;_cacheSet(S.code,'players',players);save(S.code,'players',players);}
+  if(!S.streaks)S.streaks={};
+  S.streaks[pid]=correct?(S.streaks[pid]||0)+1:0;
+  await broadcast(S.code,'response_validated',{playerId:pid,correct,points:pts,qIndex:S.currentQ,streak:S.streaks[pid]});
+  // Update game_state so players see result
+  const vals={};vals[pid]={correct,points:pts,streak:S.streaks[pid]||0,ts:Date.now(),totalScore:players[pid]?.score||0};
+  writeGameState('validated',{validations:vals});
+  renderBidValidation();
+}
+
+// =============================================================================
+// UNDERCOVER MODE - HOST
+// =============================================================================
+let ucState={phase:0,impostors:[],civilWord:'',impostorWord:''};
+
+function showHostUC(){
+  showScreen('sc-uc-host');
+  const q=S.questions[S.currentQ];
+  const players=load(S.code,'players',{});
+  const nonHost=Object.entries(players).filter(([id,p])=>!p.isHost);
+  const nImpostors=Math.max(1,Math.floor(nonHost.length/3));
+  const shuffled=[...nonHost].sort(()=>Math.random()-.5);
+  const impostors=shuffled.slice(0,nImpostors).map(([id])=>id);
+  ucState={phase:0,impostors,civilWord:q.ucWordCivil,impostorWord:q.ucWordImpostor};
+  save(S.code,'uc_state_'+S.currentQ,ucState);
+  const wordMap={};nonHost.forEach(([id])=>{wordMap[id]=impostors.includes(id)?q.ucWordImpostor:q.ucWordCivil;});
+  save(S.code,'uc_words_'+S.currentQ,wordMap);
+  broadcast(S.code,'uc_start',{qIndex:S.currentQ,wordMap,nImpostors,civilWord:q.ucWordCivil,impostorWord:q.ucWordImpostor});
+  writeGameState('uc_start',{qIndex:S.currentQ,wordMap,civilWord:q.ucWordCivil,impostorWord:q.ucWordImpostor,question:sanitizeQ(q),timer:30,startedAt:Date.now()});
+  renderUCHost();
+}
+
+function renderUCHost(){
+  const phaseLabels=['🕵️ Manche 1 — Indices','🕵️ Manche 2 — Indices','🕵️ Manche 3 — Indices','🗳️ Vote final'];
+  const nextLabels=['Passer manche 2 →','Passer manche 3 →','Passer au vote →','Révéler résultat'];
+  document.getElementById('uc-host-phase-badge').textContent=phaseLabels[ucState.phase]||'Fin';
+  document.getElementById('uc-round-label').textContent=`Q${S.currentQ+1}/${S.questions.length}`;
+  document.getElementById('uc-next-btn').textContent=nextLabels[ucState.phase]||'Suivant →';
+  document.getElementById('uc-host-body').innerHTML=`
+    <div class="flex ac gap8 mb12">
+      <div style="background:var(--gdim);border:1px solid var(--green);border-radius:var(--r);padding:8px 14px;font-size:13px"><span class="tm">Civils : </span><strong style="color:var(--green)">${ucState.civilWord}</strong></div>
+      <div style="background:var(--rdim);border:1px solid var(--red);border-radius:var(--r);padding:8px 14px;font-size:13px"><span class="tm">Imposteurs : </span><strong style="color:var(--red)">${ucState.impostorWord}</strong></div>
+      <span class="badge badge-red">${ucState.impostors.length} imposteur(s)</span>
+    </div>
+    <div class="tm" style="font-size:12px">👁 Toi seul vois tout — ne révèle rien !</div>`;
+  if(ucState.phase<3){
+    document.getElementById('uc-resp-section').style.display='block';
+    document.getElementById('uc-vote-section').style.display='none';
+    broadcast(S.code,'uc_hint_phase',{phase:ucState.phase,qIndex:S.currentQ});
+    // Load ALL hints collected so far (all phases) from Firebase cache
+    const allHintsForState=load(S.code,'uc_all_hints_'+S.currentQ,{})||{};
+    writeGameState('uc_hint_phase',{phase:ucState.phase,qIndex:S.currentQ,allHints:allHintsForState,wordMap:load(S.code,'uc_words_'+S.currentQ,{})});
+    renderUCHints();
+  } else {
+    document.getElementById('uc-resp-section').style.display='none';
+    document.getElementById('uc-vote-section').style.display='block';
+    broadcast(S.code,'uc_vote_phase',{qIndex:S.currentQ});
+    // Get ALL hints from all 3 rounds
+    const allHintsVote=load(S.code,'uc_all_hints_'+S.currentQ,{})||{};
+    writeGameState('uc_vote_phase',{qIndex:S.currentQ,allHints:allHintsVote});
+    renderUCVotes();
+  }
+}
+
+function renderUCHints(){
+  const players=load(S.code,'players',{});const wordMap=load(S.code,'uc_words_'+S.currentQ,{});
+  const hints=load(S.code,'uc_hints_'+S.currentQ+'_'+ucState.phase,{});
+  document.getElementById('uc-resp-count').textContent=Object.keys(hints).length;
+  document.getElementById('uc-resp-list').innerHTML=Object.entries(players).filter(([id,p])=>!p.isHost).map(([id,p])=>{
+    const h=hints[id];const isImp=ucState.impostors.includes(id);
+    return `<div class="uc-hint-card"><div class="flex ac gap8"><div class="avatar" style="width:26px;height:26px;font-size:10px">${initials(p.name)}</div><div><div class="flex ac gap8"><span style="font-weight:500;font-size:13px">${p.name}</span><span class="badge ${isImp?'badge-red':'badge-green'}" style="font-size:10px">${isImp?'🕵️ Imp.':'👤 Civil'}</span><span class="tm" style="font-size:10px">(${wordMap[id]||'?'})</span></div>${h?`<div class="tm" style="font-size:13px;margin-top:2px">💬 "${h}"</div>`:'<div class="tm" style="font-size:11px">En attente...</div>'}</div></div></div>`;
+  }).join('');
+}
+
+function renderUCVotes(){
+  const players=load(S.code,'players',{});const votes=load(S.code,'uc_votes_'+S.currentQ,{});
+  document.getElementById('uc-vote-count').textContent=Object.keys(votes).length;
+  const nonHost=Object.entries(players).filter(([id,p])=>!p.isHost);
+  const voteCounts={};nonHost.forEach(([id])=>{voteCounts[id]=0;});Object.values(votes).forEach(v=>{if(voteCounts[v]!==undefined)voteCounts[v]++;});
+  document.getElementById('uc-vote-list').innerHTML=nonHost.map(([id,p])=>{
+    const isImp=ucState.impostors.includes(id);
+    return `<div class="vote-btn" style="cursor:default"><div class="avatar" style="width:28px;height:28px;font-size:10px">${initials(p.name)}</div><span style="font-weight:500">${p.name}</span><span class="badge ${isImp?'badge-red':'badge-green'}" style="font-size:10px">${isImp?'🕵️':'👤'}</span><span class="tm" style="margin-left:auto;font-size:12px">${voteCounts[id]||0} vote(s)</span></div>`;
+  }).join('');
+}
+
+function ucHostNext(){
+  if(ucState.phase<3){ucState.phase++;save(S.code,'uc_state_'+S.currentQ,ucState);renderUCHost();}
+  else ucRevealResult();
+}
+
+async function ucRevealResult(){
+  const players=load(S.code,'players',{});const votes=load(S.code,'uc_votes_'+S.currentQ,{});
+  const q=S.questions[S.currentQ];
+  const voteCounts={};Object.entries(players).filter(([id,p])=>!p.isHost).forEach(([id])=>{voteCounts[id]=0;});
+  Object.values(votes).forEach(v=>{if(voteCounts[v]!==undefined)voteCounts[v]++;});
+  const sorted=Object.entries(voteCounts).sort((a,b)=>b[1]-a[1]);
+  const eliminated=sorted[0]?.[0];
+  const remainingImpostors=ucState.impostors.filter(id=>id!==eliminated);
+  const civils_win=remainingImpostors.length===0;
+  const pts=q.points||300;
+  if(civils_win){
+    Object.entries(players).filter(([id,p])=>!p.isHost&&!ucState.impostors.includes(id)).forEach(([id])=>{players[id].score=(players[id].score||0)+pts;});
+  } else {
+    ucState.impostors.forEach(id=>{if(players[id])players[id].score=(players[id].score||0)+pts;});
+  }
+  save(S.code,'players',players);
+  await broadcast(S.code,'uc_result',{qIndex:S.currentQ,civils_win,eliminated,impostors:ucState.impostors,civilWord:ucState.civilWord,impostorWord:ucState.impostorWord,points:pts});
+  showLeaderboard(S.currentQ<S.questions.length-1);
+}
+
+// =============================================================================
+// BID MODE - PLAYER
+// =============================================================================
+let myBid=0;let myBidAnswers=[];
+
+function showPlayerBid(q){
+  showScreen('sc-game-player');playerAnswered=false;myBid=0;myBidAnswers=[];
+  document.getElementById('player-prog').innerHTML=S.questions.map((_,i)=>`<div class="pdot ${i<S.currentQ?'done':i===S.currentQ?'cur':''}"></div>`).join('');
+  document.getElementById('player-q-type').textContent='Enchère 🎯';
+  document.getElementById('player-q-type').className='badge badge-orange';
+  document.getElementById('player-q-text').textContent='🎯 '+(q.bidTheme||'Thème');
+  document.getElementById('player-score').textContent=S.myScore+' pts';
+  document.getElementById('player-feedback').style.display='none';
+  document.getElementById('player-media').innerHTML='';
+  document.getElementById('secret-reveal-card').style.display='none';
+  document.getElementById('player-tnum').textContent='--';
+  document.getElementById('player-tcirc').style.strokeDashoffset='0';
+  document.getElementById('player-ans-area').innerHTML=`
+    <div class="mt8">
+      <div class="tm mb8" style="font-size:13px">Combien d'éléments peux-tu citer sur ce thème ?</div>
+      <input class="bid-input" type="number" id="bid-val" value="3" min="1" max="50">
+      <button class="btn btn-primary btn-full mt8" onclick="submitBid()">Valider ma mise →</button>
+    </div>`;
+}
+
+async function submitBid(){
+  const val=parseInt(document.getElementById('bid-val')?.value)||1;
+  myBid=Math.max(1,val);
+  await window._fbSet(window._fbRef(window._fbDb,'rooms/'+S.code+'/bids_'+S.currentQ+'/'+S.myId), myBid);
+  // Also broadcast so host knows immediately
+  await broadcast(S.code,'bid_placed',{playerId:S.myId,bid:myBid,qIndex:S.currentQ});
+  await broadcast(S.code,'bid_placed',{playerId:S.myId,bid:myBid,qIndex:S.currentQ});
+  document.getElementById('player-ans-area').innerHTML=`<div class="tm mt8 tc" style="font-size:14px">Mise de <strong style="color:var(--accent)">${myBid}</strong> enregistrée !<br>En attente du lancement<span class="wdots"><span>.</span><span>.</span><span>.</span></span></div>`;
+}
+
+function showPlayerBidAnswerPhase(timer){
+  myBidAnswers=[];
+  document.getElementById('player-ans-area').innerHTML=`
+    <div class="mt8">
+      <div class="tm mb6" style="font-size:13px">Cite tes éléments ! Mise : <strong style="color:var(--accent)">${myBid}</strong></div>
+      <div class="flex gap8 mb8">
+        <input type="text" id="bid-ans-input" placeholder="Un élément..." autocomplete="off" style="margin-bottom:0" onkeydown="if(event.key==='Enter'){event.preventDefault();addBidAnswer();}">
+        <button class="btn btn-primary btn-sm" onclick="addBidAnswer()">+</button>
+      </div>
+      <div id="bid-ans-tags" class="answer-tags"></div>
+      <div class="bid-progress"><div class="bid-progress-fill" id="bid-prog-fill" style="width:0%"></div></div>
+      <div id="bid-prog-label" class="tm" style="font-size:12px">0/${myBid}</div>
+    </div>`;
+  startTimer('player',timer,()=>finalizeBidAnswers());
+}
+
+function addBidAnswer(){
+  const inp=document.getElementById('bid-ans-input');if(!inp||!inp.value.trim())return;
+  const val=inp.value.trim();inp.value='';
+  if(myBidAnswers.includes(val)){notify('Déjà ajouté !','error');return;}
+  myBidAnswers.push(val);
+  window._fbSet(window._fbRef(window._fbDb,'rooms/'+S.code+'/bid_answers_'+S.currentQ+'/'+S.myId), myBidAnswers);
+  broadcast(S.code,'bid_answer_update',{playerId:S.myId,answers:myBidAnswers,qIndex:S.currentQ});
+  const tags=document.getElementById('bid-ans-tags');if(tags)tags.innerHTML=myBidAnswers.map((a,i)=>`<span class="answer-tag">${i+1}. ${a}</span>`).join('');
+  const fill=document.getElementById('bid-prog-fill');if(fill)fill.style.width=Math.min(100,(myBidAnswers.length/myBid*100))+'%';
+  const lbl=document.getElementById('bid-prog-label');if(lbl)lbl.textContent=`${myBidAnswers.length}/${myBid}`;
+  inp.focus();
+}
+
+function finalizeBidAnswers(){
+  window._fbSet(window._fbRef(window._fbDb,'rooms/'+S.code+'/bid_answers_'+S.currentQ+'/'+S.myId), myBidAnswers);
+  const metBid=myBidAnswers.length>=myBid;
+  document.getElementById('player-ans-area').innerHTML=`<div class="tm mt8 tc">Timer terminé ! Tu as cité <strong style="color:var(--accent)">${myBidAnswers.length}/${myBid}</strong>. ${metBid?'<span style="color:var(--green)">✓ Mise atteinte !</span>':'<span style="color:var(--red)">✗ Mise non atteinte.</span>'}</div>`;
+  showFeedback(metBid?'⏳':'❌',metBid?'Mise atteinte !':'Mise non atteinte',metBid?"En attente de validation...":"Tu n'as pas cité assez d'éléments.");
+}
+
+// =============================================================================
+// UNDERCOVER MODE - PLAYER
+// =============================================================================
+let myUCWord=null;let myUCRole='civil';
+
+function showPlayerUC(wordMap){
+  showScreen('sc-uc-player');
+  myUCWord=wordMap[S.myId]||'?';
+  const st=load(S.code,'uc_state_'+S.currentQ,{});
+  myUCRole=st.impostors&&st.impostors.includes(S.myId)?'imposteur':'civil';
+  document.getElementById('uc-player-score').textContent=S.myScore+' pts';
+  document.getElementById('uc-player-feedback').style.display='none';
+  renderUCPlayerPhase(0);
+}
+
+function renderUCPlayerPhase(phase){
+  const body=document.getElementById('uc-player-body');
+  document.getElementById('uc-player-feedback').style.display='none';
+  const players=load(S.code,'players',{});
+  const alreadySent=!!(load(S.code,'uc_hints_'+S.currentQ+'_'+phase,{})[S.myId]);
+  if(phase<3){
+    const allHints=load(S.code,'uc_all_hints_'+S.currentQ,{});
+    let prevHtml='';
+    if(phase===0){
+      prevHtml=`<div class="tc mb12">
+        <div class="tm mb4" style="font-size:12px">Ton mot secret :</div>
+        <div class="uc-word-reveal">${myUCWord}</div>
+        <div class="tm" style="font-size:12px">Donne un indice pour faire deviner ce mot sans être trop évident.</div>
+      </div>`;
+    } else {
+      prevHtml=`<div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:6px">Indices de la manche ${phase}</div>`;
+      Object.entries(allHints[phase-1]||{}).forEach(([id,h])=>{const p=players[id];if(!p)return;prevHtml+=`<div class="uc-hint-card"><div class="flex ac gap8"><div class="avatar" style="width:24px;height:24px;font-size:9px">${initials(p.name)}</div><span style="font-weight:500;font-size:13px">${p.name}</span></div><span style="font-size:14px;font-weight:600">${h}</span></div>`;});
+      prevHtml+='<hr>';
+    }
+    body.innerHTML=`${prevHtml}
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px">Manche ${phase+1} — Donne un indice :</div>
+      ${alreadySent?`<div class="tm tc" style="padding:12px">Indice envoyé ! En attente<span class="wdots"><span>.</span><span>.</span><span>.</span></span></div>`:`
+      <input type="text" id="uc-hint-input" placeholder="Ton indice..." autocomplete="off">
+      <button class="btn btn-primary btn-full" onclick="submitUCHint(${phase})">Envoyer →</button>`}`;
+  } else {
+    const allHints=load(S.code,'uc_all_hints_'+S.currentQ,{});
+    const alreadyVoted=!!(load(S.code,'uc_votes_'+S.currentQ,{})[S.myId]);
+    let allH='';
+    [0,1,2].forEach(ph=>{const phH=allHints[ph];if(!phH)return;allH+=`<div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Manche ${ph+1}</div>`;Object.entries(phH).forEach(([id,h])=>{const p=players[id];if(!p)return;allH+=`<div class="uc-hint-card"><div class="flex ac gap8"><div class="avatar" style="width:22px;height:22px;font-size:9px">${initials(p.name)}</div><span style="font-weight:500;font-size:12px">${p.name}</span></div><span style="font-size:13px;font-weight:600">${h}</span></div>`});allH+='<div style="margin-bottom:8px"></div>';});
+    const nonHost=Object.entries(players).filter(([id,p])=>!p.isHost&&id!==S.myId);
+    // Build hints summary per player for vote screen
+    const allHintsData=load(S.code,'uc_all_hints_'+S.currentQ,{})||{};
+    const playerHintsSummary={};
+    Object.values(allHintsData).forEach(phaseHints=>{
+      Object.entries(phaseHints||{}).forEach(([pid,hint])=>{
+        if(!playerHintsSummary[pid])playerHintsSummary[pid]=[];
+        playerHintsSummary[pid].push(hint);
+      });
+    });
+    body.innerHTML=`<div style="font-size:14px;font-weight:600;margin-bottom:10px">🗳️ Qui est l'imposteur ?</div>
+      ${alreadyVoted?`<div class="tm tc" style="padding:10px">Vote enregistré !<span class="wdots"><span>.</span><span>.</span><span>.</span></span></div>`:`
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Clique sur le joueur que tu suspectes :</div>
+      ${nonHost.map(([id,p])=>{
+        const hints=playerHintsSummary[id]||[];
+        const hintsHtml=hints.map((h,i)=>`<span style="font-size:11px;color:var(--muted)">M${i+1}: ${h}</span>`).join(' · ');
+        return `<button class="vote-btn" onclick="submitUCVote('${id}',this)">
+          <div class="avatar" style="width:28px;height:28px;font-size:10px">${initials(p.name)}</div>
+          <div><div style="font-weight:500;font-size:14px">${p.name}</div>${hintsHtml?`<div style="font-size:11px;color:var(--muted)">${hintsHtml}</div>`:''}</div>
+        </button>`;
+      }).join('')}`}`;
+  }
+}
+
+async function submitUCHint(phase){
+  const inp=document.getElementById('uc-hint-input');if(!inp||!inp.value.trim()){notify('Donne un indice !','error');return;}
+  const hint=inp.value.trim();
+  const hints=load(S.code,'uc_hints_'+S.currentQ+'_'+phase,{});hints[S.myId]=hint;save(S.code,'uc_hints_'+S.currentQ+'_'+phase,hints);
+  const allHints=load(S.code,'uc_all_hints_'+S.currentQ,{});if(!allHints[phase])allHints[phase]={};allHints[phase][S.myId]=hint;save(S.code,'uc_all_hints_'+S.currentQ,allHints);
+  await broadcast(S.code,'uc_hint_sent',{playerId:S.myId,hint,phase,qIndex:S.currentQ});
+  document.getElementById('uc-player-body').innerHTML=`<div class="tm tc" style="padding:20px">Indice "<strong>${hint}</strong>" envoyé !<br>En attente<span class="wdots"><span>.</span><span>.</span><span>.</span></span></div>`;
+}
+
+async function submitUCVote(targetId,btn){
+  document.querySelectorAll('.vote-btn').forEach(b=>{b.classList.remove('voted');b.disabled=true;});
+  btn.classList.add('voted');
+  const votes=load(S.code,'uc_votes_'+S.currentQ,{})||{};votes[S.myId]=targetId;await save(S.code,'uc_votes_'+S.currentQ,votes);
+  await broadcast(S.code,'uc_vote_cast',{playerId:S.myId,vote:targetId,qIndex:S.currentQ});
+  btn.insertAdjacentHTML('afterend','<div class="tm tc mt8" style="font-size:12px">Vote enregistré !<span class="wdots"><span>.</span><span>.</span><span>.</span></span></div>');
+}
+
+function showUCResult(data){
+  const myIsImpostor=data.impostors&&data.impostors.includes(S.myId);
+  const iWon=data.civils_win?!myIsImpostor:myIsImpostor;
+  if(iWon){S.myScore+=data.points||0;try{document.getElementById('uc-player-score').textContent=S.myScore+' pts';}catch(e){}}
+  const fb=document.getElementById('uc-player-feedback');fb.style.display='block';
+  document.getElementById('uc-pfb-icon').textContent=iWon?'🏆':'😭';
+  document.getElementById('uc-pfb-text').textContent=data.civils_win?'Les civils ont gagné !':'Les imposteurs ont gagné !';
+  const elName=(load(S.code,'players',{}))[data.eliminated]?.name||'?';
+  document.getElementById('uc-pfb-sub').textContent=`${elName} éliminé(e) · Civil : ${data.civilWord} · Imposteur : ${data.impostorWord}${iWon?' · +'+data.points+' pts':''}`;
+}
+// =============================================================================
+// HOTSPOT IMAGE UPLOAD + PIN PLACEMENT
+// =============================================================================
+function uploadHotspotImage(qid, input) {
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const q = questions.find(q=>q.id==qid); if(!q) return;
+    q.mediaUrl = e.target.result;  // base64
+    q.mediaType = 'image';
+    renderQList();
+  };
+  reader.readAsDataURL(file);
+}
+
+function placeHotspotAnswer(qid, hsId, e) {
+  const img = document.getElementById(hsId+'-img');
+  if(!img) return;
+  const rect = img.getBoundingClientRect();
+  const x = ((e.clientX - rect.left) / rect.width * 100);
+  const y = ((e.clientY - rect.top) / rect.height * 100);
+  const q = questions.find(q=>q.id==qid); if(!q) return;
+  q.correctPin = {x: parseFloat(x.toFixed(2)), y: parseFloat(y.toFixed(2))};
+  renderQList();
+}
+
+// Auto-validate hotspot based on correctPin if defined
+function checkHotspotAnswer(answer, q) {
+  if(!q.correctPin || answer===undefined) return null; // null = manual
+  const dx = answer.x - q.correctPin.x;
+  const dy = answer.y - q.correctPin.y;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+  return dist <= (q.hotspotTolerance||10); // 10% tolerance radius
+}
+
+// =============================================================================
+// QUIZ SAVE / LOAD SYSTEM
+// =============================================================================
+const QUIZ_STORAGE_KEY = 'quiznight_saved_quizzes';
+
+function getSavedQuizzes() {
+  try {
+    const raw = localStorage.getItem(QUIZ_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) { return []; }
+}
+
+function saveCurrentQuiz() {
+  if(questions.length === 0) { notify('Aucune question à sauvegarder', 'error'); return; }
+  const name = prompt('Nom du quiz :');
+  if(!name || !name.trim()) return;
+  const quizzes = getSavedQuizzes();
+  const existing = quizzes.findIndex(q => q.name === name.trim());
+  const quiz = { name: name.trim(), questions: JSON.parse(JSON.stringify(questions)), savedAt: Date.now() };
+  if(existing >= 0) {
+    if(!confirm('Un quiz "'+name.trim()+'" existe déjà. Écraser ?')) return;
+    quizzes[existing] = quiz;
+  } else {
+    quizzes.push(quiz);
+  }
+  localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(quizzes));
+  notify('Quiz "'+name.trim()+'" sauvegardé !', 'success');
+  renderSavedQuizzes();
+}
+
+function loadSavedQuiz(name) {
+  const quizzes = getSavedQuizzes();
+  const quiz = quizzes.find(q => q.name === name);
+  if(!quiz) return;
+  if(questions.length > 0 && !confirm('Remplacer les questions actuelles par "'+name+'" ?')) return;
+  questions = quiz.questions.map((q,i) => ({...q, id: Date.now()+i}));
+  renderQList(); updateQCount();
+  notify('Quiz "'+name+'" chargé !', 'success');
+  renderSavedQuizzes();
+}
+
+function deleteSavedQuiz(name) {
+  if(!confirm('Supprimer "'+name+'" ?')) return;
+  const quizzes = getSavedQuizzes().filter(q => q.name !== name);
+  localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(quizzes));
+  notify('"'+name+'" supprimé', 'success');
+  renderSavedQuizzes();
+}
+
+function exportQuiz() {
+  if(questions.length === 0) { notify('Aucune question', 'error'); return; }
+  const name = prompt('Nom du fichier :') || 'quiz';
+  const data = JSON.stringify({ name, questions }, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = name.replace(/[^a-z0-9]/gi,'_')+'.json'; a.click();
+}
+
+function importQuizFile() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        const qs = data.questions || data;
+        if(!Array.isArray(qs)) { notify('Fichier invalide', 'error'); return; }
+        if(questions.length > 0 && !confirm('Remplacer les questions actuelles ?')) return;
+        questions = qs.map((q,i) => ({...q, id: Date.now()+i}));
+        renderQList(); updateQCount();
+        notify(qs.length+' questions importées !', 'success');
+      } catch(e) { notify('Erreur de lecture du fichier', 'error'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function renderSavedQuizzes() {
+  const el = document.getElementById('saved-quizzes-list');
+  if(!el) return;
+  const quizzes = getSavedQuizzes();
+  if(quizzes.length === 0) {
+    el.innerHTML = '<div class="tm" style="font-size:12px;padding:8px">Aucun quiz sauvegardé.</div>';
+    return;
+  }
+  el.innerHTML = quizzes.sort((a,b)=>b.savedAt-a.savedAt).map(q => {
+    const date = new Date(q.savedAt).toLocaleDateString('fr-FR');
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--s2);border-radius:var(--r);margin-bottom:6px;border:1px solid var(--border)">
+      <div>
+        <div style="font-weight:500;font-size:13px">${q.name}</div>
+        <div class="tm" style="font-size:11px">${q.questions.length} questions · ${date}</div>
+      </div>
+      <div class="flex gap8">
+        <button class="btn btn-xs btn-success" onclick="loadSavedQuiz('${q.name.replace(/'/g,"\'")}')">Charger</button>
+        <button class="btn btn-xs btn-danger" onclick="deleteSavedQuiz('${q.name.replace(/'/g,"\'")}')">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleSavedPanel() {
+  const list = document.getElementById('saved-quizzes-list');
+  const arrow = document.getElementById('saved-arrow');
+  const quizzes = getSavedQuizzes();
+  const count = document.getElementById('saved-count');
+  if(count) count.textContent = quizzes.length;
+  if(list.style.display === 'none') {
+    list.style.display = 'block';
+    if(arrow) arrow.textContent = '▲ masquer';
+    renderSavedQuizzes();
+  } else {
+    list.style.display = 'none';
+    if(arrow) arrow.textContent = '▼ afficher';
+  }
+}
+
+// =============================================================================
+// END TIMER EARLY + CHECK ALL ANSWERED
+// =============================================================================
+function endTimerEarly(){
+  clearInterval(S.timerInterval);
+  // Set timer display to 0
+  const tnum=document.getElementById('host-tnum');
+  const tcirc=document.getElementById('host-tcirc');
+  if(tnum)tnum.textContent='0';
+  if(tcirc){tcirc.style.strokeDashoffset='131.9';tcirc.style.stroke='var(--red)';}
+  broadcast(S.code,'question_end',{});
+  notify('Timer terminé !','success');
+}
+
+function checkAllAnswered(){
+  // Auto-reveal when all non-host players have answered
+  const players=load(S.code,'players',{})||{};
+  const nonHost=Object.entries(players).filter(([id,p])=>!p.isHost);
+  if(nonHost.length===0)return;
+  const respData=load(S.code,'responses_'+S.currentQ,{})||{};
+  const answeredCount=nonHost.filter(([id])=>respData[id]!==undefined).length;
+  const validatedCount=nonHost.filter(([id])=>respData[id]?.validated!==undefined).length;
+  const total=nonHost.length;
+  // Update response count display
+  const countEl=document.getElementById('resp-count');
+  if(countEl)countEl.textContent=answeredCount+'/'+total;
+  // If all answered and mode is auto, reveal automatically
+  const q=S.questions[S.currentQ];
+  const isManual=S.settings.corrMode==='manual'||(S.settings.corrMode==='mixed'&&['open','hotspot','scale','secret'].includes(q.type));
+  if(answeredCount>=total && !isManual){
+    // Small delay to let last answer register
+    setTimeout(()=>{
+      clearInterval(S.timerInterval);
+      broadcast(S.code,'question_end',{});
+      revealAnswers();
+      notify('Tous ont répondu !','success');
+    },500);
+  }
+}
+
+// =============================================================================
+// PLAYER: handle response_validated to show leaderboard when host moves on
+// =============================================================================
+// Patch handlePlayerMsg response_validated to update streak display
+const _origResponseValidated = (msg) => {
+  if(msg.data.playerId===S.myId){
+    const c=msg.data.correct;
+    S.myScore+=msg.data.points||0;
+    const scoreEl=document.getElementById('player-score');
+    if(scoreEl)scoreEl.textContent=S.myScore+' pts';
+    const streakCount=msg.data.streak||0;
+    const streakStr=streakCount>=3?` 🔥x${streakCount}`:'';
+    showFeedback(
+      c?'✅':'❌',
+      c?`+${msg.data.points} pts${streakCount>=3?' 🔥 Série de ${streakCount} !':''}`:'Mauvaise réponse',
+      c?(streakCount>=2?`${streakCount} bonnes réponses d'affilée !`:'Bien joué !'):'Dommage !'
+    );
+    document.querySelector('.ans-btn.sel')?.classList.add(c?'correct':'wrong');
+  }
+};
+
+function buildValidations(){
+  const allP=load(S.code,'players',{})||{};
+  const allR=load(S.code,'responses_'+S.currentQ,{})||{};
+  const vals={};
+  Object.entries(allP).filter(([id,p])=>!p.isHost).forEach(([id,p])=>{
+    const r=allR[id];
+    if(r&&r.validated!==undefined){
+      vals[id]={correct:r.validated,points:r.points||0,streak:(S.streaks&&S.streaks[id])||0,ts:Date.now(),totalScore:allP[id]?.score||0};
+    }
+  });
+  return vals;
+}
+
+// =============================================================================
+// HOST: Write game state so players can read it directly
+// =============================================================================
+async function writeGameState(phase, extra={}){
+  if(S.role!=='host'||!S.code)return;
+  const players=load(S.code,'players',{})||{};
+  // Calculate scores per player
+  const scores=Object.entries(players)
+    .filter(([id,p])=>!p.isHost)
+    .sort((a,b)=>b[1].score-a[1].score)
+    .map(([id,p])=>({id,name:p.name,score:p.score||0,team:p.team||null}));
+  const gs={phase,currentQ:S.currentQ,scores,streaks:S.streaks||{},ts:Date.now(),...extra};
+  try{
+    await window._fbSet(window._fbRef(window._fbDb,'rooms/'+S.code+'/game_state'),gs);
+    console.log('[QN] game_state written: phase='+phase);
+  }catch(e){console.error('[QN] writeGameState error:',e);}
+}
+
+// =============================================================================
+// 🎊 CONFETTI
+// =============================================================================
+function launchConfetti(){
+  if(document.getElementById('confetti-canvas'))return;
+  const canvas=document.createElement('canvas');
+  canvas.id='confetti-canvas';
+  canvas.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999';
+  document.body.appendChild(canvas);
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  const colors=['#FFD700','#FFA500','#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD'];
+  const pieces=Array.from({length:150},()=>({
+    x:Math.random()*canvas.width, y:-10,
+    r:Math.random()*6+3, c:colors[Math.floor(Math.random()*colors.length)],
+    vx:(Math.random()-0.5)*4, vy:Math.random()*4+2,
+    rot:Math.random()*360, vrot:(Math.random()-0.5)*8,
+    alpha:1
+  }));
+  let frame=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p=>{
+      ctx.save(); ctx.globalAlpha=p.alpha;
+      ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle=p.c; ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r);
+      ctx.restore();
+      p.x+=p.vx; p.y+=p.vy; p.rot+=p.vrot;
+      if(frame>120)p.alpha-=0.01;
+    });
+    frame++;
+    if(frame<240)requestAnimationFrame(draw);
+    else canvas.remove();
+  }
+  draw();
+}
+
+// =============================================================================
+// 😄 REACTION EMOJIS on answer feedback
+// =============================================================================
+const REACTIONS_CORRECT = ['🔥','⚡','💯','🎯','👑','🚀','💪','🏆','😎','✨'];
+const REACTIONS_WRONG   = ['😬','💀','🙈','😭','🤦','😅','👻','💔','🫠','😤'];
+
+function showFeedbackWithReaction(correct, pts, streak){
+  const emoji = correct
+    ? REACTIONS_CORRECT[Math.floor(Math.random()*REACTIONS_CORRECT.length)]
+    : REACTIONS_WRONG[Math.floor(Math.random()*REACTIONS_WRONG.length)];
+  const streakMsg = streak>=3 ? ` 🔥 x${streak}` : '';
+  const speedInfo = correct && pts ? ` (+${pts} pts)` : '';
+  showFeedback(
+    emoji,
+    correct ? `Bonne réponse !${speedInfo}${streakMsg}` : 'Mauvaise réponse...',
+    correct
+      ? (streak>=3 ? `${streak} bonnes d'affilée, tu es en feu !` : 'Bien joué !')
+      : ['Dommage !','Raté !','Presque...','La prochaine fois !'][Math.floor(Math.random()*4)]
+  );
+}
+
+// =============================================================================
+// 🎵 AMBIENT MUSIC (timer jingle)
+// =============================================================================
+let _audioCtx=null;
+let _musicNodes=[];
+
+function getAudioCtx(){
+  if(!_audioCtx) _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return _audioCtx;
+}
+
+function playTimerJingle(){
+  if(!window._musicEnabled)return;
+  stopMusic();
+  try{
+    const ctx=getAudioCtx();
+    // Simple ticking sound
+    function tick(time){
+      const osc=ctx.createOscillator();
+      const gain=ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value=800; osc.type='sine';
+      gain.gain.setValueAtTime(0.08,time);
+      gain.gain.exponentialRampToValueAtTime(0.001,time+0.1);
+      osc.start(time); osc.stop(time+0.1);
+      _musicNodes.push(osc);
+    }
+    for(let i=0;i<30;i++) tick(ctx.currentTime+i*1.0);
+  }catch(e){}
+}
+
+function playCorrectSound(){
+  if(!window._musicEnabled)return;
+  try{
+    const ctx=getAudioCtx();
+    [523,659,784].forEach((f,i)=>{
+      const osc=ctx.createOscillator();
+      const gain=ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value=f; osc.type='sine';
+      gain.gain.setValueAtTime(0.15,ctx.currentTime+i*0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.12+0.2);
+      osc.start(ctx.currentTime+i*0.12);
+      osc.stop(ctx.currentTime+i*0.12+0.2);
+    });
+  }catch(e){}
+}
+
+function playWrongSound(){
+  if(!window._musicEnabled)return;
+  try{
+    const ctx=getAudioCtx();
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type='sawtooth'; osc.frequency.value=200;
+    gain.gain.setValueAtTime(0.1,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime+0.4);
+  }catch(e){}
+}
+
+function stopMusic(){
+  _musicNodes.forEach(n=>{try{n.stop();}catch(e){}});
+  _musicNodes=[];
+}
+
+function toggleMusic(){
+  window._musicEnabled=!window._musicEnabled;
+  const btn=document.getElementById('music-toggle-btn');
+  if(btn)btn.textContent=window._musicEnabled?'🎵 Son ON':'🔇 Son OFF';
+  if(!window._musicEnabled)stopMusic();
+}
+
+window._musicEnabled=false;
+
+// =============================================================================
+// 🔁 REPLAY from final screen
+// =============================================================================
+function replayQuiz(){
+  if(S.role!=='host'){notify("Seul l'hôte peut relancer","error");return;}
+  // Reset to setup screen with same questions loaded
+  showScreen('sc-setup');
+  renderQList();
+  updateQCount();
+  notify('Quiz rechargé ! Tu peux relancer une nouvelle salle.','success');
+}
+
+// =============================================================================
+// 📚 QUESTIONS DATABASE & THEMES SYSTEM
+// =============================================================================
+const QUESTIONS_DB = {"anime": [{"text": "Dans quel anime Naruto Uzumaki est-il le personnage principal ?", "type": "qcm", "options": ["Bleach", "Naruto", "One Piece", "Dragon Ball Z"], "correct": [1], "points": 100}, {"text": "Quelle est la capacité spéciale de Luffy dans One Piece ?", "type": "qcm", "options": ["Voler", "Contrôler le feu", "Corps en caoutchouc", "Devenir invisible"], "correct": [2], "points": 100}, {"text": "Dans Dragon Ball Z, quelle transformation permet à Goku de dépasser Super Saiyan ?", "type": "qcm", "options": ["Super Saiyan 2", "Ultra Instinct", "Super Saiyan God", "Oozaru"], "correct": [0], "points": 100}, {"text": "Quel est le nom du géant assaillant dans L'Attaque des Titans ?", "type": "qcm", "options": ["Titan Colossal", "Titan Cuirassé", "Titan Féminin", "Titan Bestial"], "correct": [0], "points": 100}, {"text": "Dans Death Note, qui est le dieu de la mort qui donne le carnet à Light ?", "type": "qcm", "options": ["Rem", "Ryuk", "Sidoh", "Gelus"], "correct": [1], "points": 100}, {"text": "Quel est le sport pratiqué dans Haikyuu !! ?", "type": "qcm", "options": ["Basketball", "Football", "Volleyball", "Tennis"], "correct": [2], "points": 100}, {"text": "Dans My Hero Academia, comment s'appelle le pouvoir d'un individu ?", "type": "qcm", "options": ["Quirk", "Stand", "Ninjutsu", "Haki"], "correct": [0], "points": 100}, {"text": "Quel est le vrai nom de Tanjiro dans Demon Slayer ?", "type": "qcm", "options": ["Tanjiro Uzumaki", "Tanjiro Kamado", "Tanjiro Todoroki", "Tanjiro Midoriya"], "correct": [1], "points": 150}, {"text": "Dans One Piece, quel est le nom du fruit du démon de Ace ?", "type": "qcm", "options": ["Fruit Flamme", "Mera Mera no Mi", "Fruit du feu", "Fruit Hiken"], "correct": [1], "points": 150}, {"text": "Quel personnage de Jujutsu Kaisen est surnommé 'le plus grand sorcier actuel' ?", "type": "qcm", "options": ["Itadori", "Gojo Satoru", "Megumi", "Nanami"], "correct": [1], "points": 150}, {"text": "Dans FMA Brotherhood, quel objet permet la transmutation sans dessin ?", "type": "qcm", "options": ["Cuivre", "Pierre philosophale", "Or", "Acier automail"], "correct": [1], "points": 150}, {"text": "Dans Hunter x Hunter, combien de types de Nen existent-il ?", "type": "qcm", "options": ["4", "6", "8", "10"], "correct": [1], "points": 150}, {"text": "Dans Bleach, quel est le nom de la technique ultime de Zangetsu ?", "type": "qcm", "options": ["Getsuga Tensho", "Bankai", "Kuroi Getsuga", "Mugetsu"], "correct": [3], "points": 200}, {"text": "Dans Dragon Ball Super, quelle est la couleur de l'aura Ultra Instinct maîtrisé ?", "type": "qcm", "options": ["Bleue", "Rose", "Argentée", "Dorée"], "correct": [2], "points": 200}, {"text": "Dans Naruto, quel est le vrai nom de l'organisation criminelle principale ?", "type": "qcm", "options": ["Akatsuki", "Taka", "Anbu", "Kara"], "correct": [0], "points": 200}], "jeux_video": [{"text": "Dans quel jeu incarne-t-on Mario pour la première fois en 3D ?", "type": "qcm", "options": ["Super Mario World", "Super Mario 64", "Super Mario Galaxy", "Super Mario Odyssey"], "correct": [1], "points": 100}, {"text": "Dans Minecraft, quel matériau est le plus résistant ?", "type": "qcm", "options": ["Diamant", "Netherite", "Or", "Obsidienne"], "correct": [1], "points": 100}, {"text": "Quel est le nom du héros de The Legend of Zelda ?", "type": "qcm", "options": ["Zelda", "Link", "Ganon", "Epona"], "correct": [1], "points": 100}, {"text": "Dans GTA 5, combien y a-t-il de personnages jouables ?", "type": "qcm", "options": ["1", "2", "3", "4"], "correct": [2], "points": 100}, {"text": "Quel est le nom du studio qui a créé Fortnite ?", "type": "qcm", "options": ["Activision", "Riot Games", "Epic Games", "Ubisoft"], "correct": [2], "points": 100}, {"text": "Dans League of Legends, combien de joueurs composent une équipe ?", "type": "qcm", "options": ["3", "4", "5", "6"], "correct": [2], "points": 100}, {"text": "Quelle console Sony concurrençait la Nintendo 64 ?", "type": "qcm", "options": ["PSP", "PlayStation", "PlayStation 2", "Dreamcast"], "correct": [1], "points": 100}, {"text": "Dans Genshin Impact, quel élément est associé à Mondstadt ?", "type": "qcm", "options": ["Pyro", "Anemo", "Hydro", "Electro"], "correct": [1], "points": 150}, {"text": "Dans Call of Duty Warzone, combien de joueurs participent à une partie BR standard ?", "type": "qcm", "options": ["50", "100", "150", "200"], "correct": [1], "points": 150}, {"text": "Dans Elden Ring, quel est l'objet recherché par tous les Marnis Ternis ?", "type": "qcm", "options": ["L'Anneau d'Elden", "La Rune Fondamentale", "Le Grand Rune", "L'Anneau Brisé"], "correct": [0], "points": 150}, {"text": "Dans Dark Souls, quel est le premier boss obligatoire ?", "type": "qcm", "options": ["Margit", "Iudex Gundyr", "Taurus Démon", "Asylum Démon"], "correct": [3], "points": 150}, {"text": "Combien d'étoiles maximum peut avoir un personnage dans Genshin Impact ?", "type": "qcm", "options": ["4", "5", "6", "7"], "correct": [1], "points": 150}, {"text": "Dans Hollow Knight, quel est le nom du boss final du DLC Grimm ?", "type": "qcm", "options": ["Nightmare King Grimm", "The Radiance", "Markoth", "God Tamer"], "correct": [0], "points": 200}, {"text": "Quel jeu a introduit le Battle Royale dans les FPS en premier ?", "type": "qcm", "options": ["Fortnite", "PUBG", "H1Z1", "DayZ"], "correct": [2], "points": 200}, {"text": "Dans quel opus de Dark Souls apparaît Gwyn pour la première fois ?", "type": "qcm", "options": ["Dark Souls 1", "Dark Souls 2", "Dark Souls 3", "Demon's Souls"], "correct": [0], "points": 200}], "football": [{"text": "Combien y a-t-il de joueurs dans une équipe de football ?", "type": "qcm", "options": ["9", "10", "11", "12"], "correct": [2], "points": 100}, {"text": "Quel pays a remporté la Coupe du Monde 2018 ?", "type": "qcm", "options": ["Brésil", "Allemagne", "France", "Croatie"], "correct": [2], "points": 100}, {"text": "Dans quel club Cristiano Ronaldo a-t-il commencé sa carrière pro ?", "type": "qcm", "options": ["Real Madrid", "Manchester United", "Sporting CP", "Juventus"], "correct": [2], "points": 100}, {"text": "Quel pays a remporté le plus de Coupes du Monde ?", "type": "qcm", "options": ["Allemagne", "Argentine", "Italie", "Brésil"], "correct": [3], "points": 100}, {"text": "Lionel Messi a remporté la Coupe du Monde avec quelle sélection ?", "type": "qcm", "options": ["Brésil", "Espagne", "Argentine", "Uruguay"], "correct": [2], "points": 100}, {"text": "Quel est le surnom de Kylian Mbappé ?", "type": "qcm", "options": ["Le Phénomène", "Kyky", "Donatello", "BB"], "correct": [1], "points": 100}, {"text": "Quel joueur a remporté le plus de Ballons d'Or dans l'histoire ?", "type": "qcm", "options": ["Ronaldo", "Messi", "Platini", "Ronaldinho"], "correct": [1], "points": 100}, {"text": "Quel est le stade du Real Madrid ?", "type": "qcm", "options": ["Camp Nou", "Santiago Bernabeu", "Wanda Metropolitano", "San Siro"], "correct": [1], "points": 150}, {"text": "Quel joueur a marqué le but de la main lors de la Coupe du Monde 1986 ?", "type": "qcm", "options": ["Pelé", "Ronaldo", "Maradona", "Zidane"], "correct": [2], "points": 150}, {"text": "En quelle année le PSG a-t-il été fondé ?", "type": "qcm", "options": ["1968", "1970", "1972", "1975"], "correct": [1], "points": 150}, {"text": "Quel club a remporté le plus de Ligues des Champions ?", "type": "qcm", "options": ["Barcelona", "Bayern Munich", "Real Madrid", "Liverpool"], "correct": [2], "points": 150}, {"text": "En quelle année Zidane a-t-il pris un rouge en finale de Coupe du Monde ?", "type": "qcm", "options": ["2002", "2004", "2006", "2010"], "correct": [2], "points": 150}, {"text": "Quel gardien détient le record de clean sheets en Ligue des Champions ?", "type": "qcm", "options": ["Schmeichel", "Iker Casillas", "Buffon", "Neuer"], "correct": [1], "points": 200}, {"text": "Quel joueur français a marqué un hat-trick en finale de Coupe du Monde 2022 ?", "type": "qcm", "options": ["Giroud", "Benzema", "Griezmann", "Mbappé"], "correct": [3], "points": 200}, {"text": "Combien de fois le Brésil a-t-il remporté la Coupe du Monde ?", "type": "qcm", "options": ["4", "5", "6", "7"], "correct": [1], "points": 200}], "culture_g": [{"text": "Quelle est la capitale de la France ?", "type": "qcm", "options": ["Lyon", "Paris", "Marseille", "Bordeaux"], "correct": [1], "points": 100}, {"text": "Combien de continents y a-t-il sur Terre ?", "type": "qcm", "options": ["5", "6", "7", "8"], "correct": [2], "points": 100}, {"text": "Quel est le plus grand océan du monde ?", "type": "qcm", "options": ["Atlantique", "Indien", "Arctique", "Pacifique"], "correct": [3], "points": 100}, {"text": "Qui a peint la Joconde ?", "type": "qcm", "options": ["Michel-Ange", "Raphaël", "Leonardo da Vinci", "Picasso"], "correct": [2], "points": 100}, {"text": "Quelle est la monnaie du Japon ?", "type": "qcm", "options": ["Yuan", "Won", "Yen", "Baht"], "correct": [2], "points": 100}, {"text": "Quel est le plus grand pays du monde par superficie ?", "type": "qcm", "options": ["Canada", "Chine", "USA", "Russie"], "correct": [3], "points": 100}, {"text": "Combien de couleurs y a-t-il dans un arc-en-ciel ?", "type": "qcm", "options": ["5", "6", "7", "8"], "correct": [2], "points": 100}, {"text": "En quelle année a eu lieu la Révolution française ?", "type": "qcm", "options": ["1776", "1789", "1799", "1804"], "correct": [1], "points": 150}, {"text": "Quel élément chimique a pour symbole 'Fe' ?", "type": "qcm", "options": ["Fluor", "Fer", "Francium", "Fermium"], "correct": [1], "points": 150}, {"text": "Quel est le pays le plus peuplé du monde en 2024 ?", "type": "qcm", "options": ["Chine", "Inde", "USA", "Indonésie"], "correct": [1], "points": 150}, {"text": "Quel scientifique a formulé la théorie de la relativité ?", "type": "qcm", "options": ["Newton", "Darwin", "Einstein", "Curie"], "correct": [2], "points": 150}, {"text": "Combien de grammes y a-t-il dans une livre (poids) ?", "type": "qcm", "options": ["400g", "453g", "500g", "600g"], "correct": [1], "points": 150}, {"text": "Quelle est la vitesse de la lumière en km/s ?", "type": "qcm", "options": ["200 000", "299 792", "300 000", "350 000"], "correct": [1], "points": 200}, {"text": "En quelle année l'ONU a-t-elle été fondée ?", "type": "qcm", "options": ["1944", "1945", "1946", "1947"], "correct": [1], "points": 200}, {"text": "Quel pays possède la plus longue frontière terrestre au monde ?", "type": "qcm", "options": ["USA", "Chine", "Russie", "Canada"], "correct": [2], "points": 200}], "culture_web": [{"text": "Quel animal est le symbole du mème 'Doge' ?", "type": "qcm", "options": ["Chat", "Shiba Inu", "Husky", "Labrador"], "correct": [1], "points": 100}, {"text": "Quel réseau social était représenté par un oiseau bleu ?", "type": "qcm", "options": ["Facebook", "Instagram", "Twitter/X", "Snapchat"], "correct": [2], "points": 100}, {"text": "Quel est le vrai nom de PewDiePie ?", "type": "qcm", "options": ["Felix Kjellberg", "Felix Sandberg", "Marcus Persson", "Daniel Middleton"], "correct": [0], "points": 100}, {"text": "Quelle application est connue pour ses vidéos courtes devenues virales en 2020 ?", "type": "qcm", "options": ["Instagram Reels", "TikTok", "YouTube Shorts", "Snapchat"], "correct": [1], "points": 100}, {"text": "Que signifie 'LOL' ?", "type": "qcm", "options": ["Laughing On Line", "Lots Of Love", "Laugh Out Loud", "League of Legends"], "correct": [2], "points": 100}, {"text": "Quel est le nom du mème avec un homme distrait par une autre femme ?", "type": "qcm", "options": ["Distracted Boyfriend", "Cheating Man", "Boyfriend meme", "Look at her"], "correct": [0], "points": 100}, {"text": "Que signifie FOMO ?", "type": "qcm", "options": ["Fear Of Missing Out", "Fun Of Making Out", "Fight Or Move On", "Follow Only Meme Owners"], "correct": [0], "points": 100}, {"text": "En quelle année Twitter a-t-il été fondé ?", "type": "qcm", "options": ["2004", "2005", "2006", "2007"], "correct": [2], "points": 150}, {"text": "Quel streamer français est surnommé 'Ze' ou 'Zerator' ?", "type": "qcm", "options": ["Gotaga", "Squeezie", "Zerator", "Sardoche"], "correct": [2], "points": 150}, {"text": "En quelle année YouTube a-t-il été racheté par Google ?", "type": "qcm", "options": ["2005", "2006", "2007", "2008"], "correct": [1], "points": 150}, {"text": "Quel était le nom original de Snapchat lors de sa création ?", "type": "qcm", "options": ["Flashgram", "Picaboo", "Snapr", "Ghostly"], "correct": [1], "points": 150}, {"text": "Quel est le vrai prénom du YouTubeur français Squeezie ?", "type": "qcm", "options": ["Lucas", "Thomas", "Raphaël", "Hugo"], "correct": [0], "points": 150}, {"text": "Quel est le protocole qui permet la décentralisation de Mastodon ?", "type": "qcm", "options": ["OAuth", "ActivityPub", "RSS", "WebSocket"], "correct": [1], "points": 200}, {"text": "En quelle année Instagram a-t-il été racheté par Facebook ?", "type": "qcm", "options": ["2011", "2012", "2013", "2014"], "correct": [1], "points": 200}, {"text": "Quel est le nom du premier navigateur web graphique grand public ?", "type": "qcm", "options": ["Internet Explorer", "Mosaic", "Netscape", "Opera"], "correct": [1], "points": 200}], "annees90_2000": [{"text": "Quel jouet électronique virtuel était très populaire à la fin des années 90 ?", "type": "qcm", "options": ["Tamagotchi", "Furby", "Yo-yo", "Game Boy"], "correct": [0], "points": 100}, {"text": "Quel groupe a chanté 'Wannabe' en 1996 ?", "type": "qcm", "options": ["TLC", "Destiny's Child", "Spice Girls", "No Doubt"], "correct": [2], "points": 100}, {"text": "Quel film d'animation Disney est sorti en 1994 ?", "type": "qcm", "options": ["Aladdin", "Le Roi Lion", "La Petite Sirène", "Pocahontas"], "correct": [1], "points": 100}, {"text": "Quel est le nom du cowboy dans Toy Story ?", "type": "qcm", "options": ["Buzz", "Woody", "Rex", "Hamm"], "correct": [1], "points": 100}, {"text": "Dans Pokémon, quel est le premier Pokémon dans le Pokédex national ?", "type": "qcm", "options": ["Pikachu", "Salamèche", "Bulbizarre", "Mew"], "correct": [2], "points": 100}, {"text": "Dans quel dessin animé retrouve-t-on Bob l'Éponge et Patrick ?", "type": "qcm", "options": ["Dexter", "Bob l'Éponge", "Rugrats", "Catdog"], "correct": [1], "points": 100}, {"text": "Quel film de 1999 met en scène une réalité simulée ?", "type": "qcm", "options": ["Dark City", "eXistenZ", "The Matrix", "Strange Days"], "correct": [2], "points": 100}, {"text": "Quel artiste a sorti l'album 'The Slim Shady LP' en 1999 ?", "type": "qcm", "options": ["Jay-Z", "Dr. Dre", "Eminem", "50 Cent"], "correct": [2], "points": 150}, {"text": "Quelle console SEGA concurrençait la PlayStation 2 ?", "type": "qcm", "options": ["Saturn", "Game Gear", "Dreamcast", "Mega Drive"], "correct": [2], "points": 150}, {"text": "Quel film de James Cameron a remporté 11 Oscars en 1998 ?", "type": "qcm", "options": ["Aliens", "Avatar", "Titanic", "The Terminator"], "correct": [2], "points": 150}, {"text": "Quel groupe de rock a sorti 'Smells Like Teen Spirit' en 1991 ?", "type": "qcm", "options": ["Pearl Jam", "Soundgarden", "Nirvana", "Alice in Chains"], "correct": [2], "points": 150}, {"text": "Quel joueur de basketball a dominé les années 90 avec les Bulls de Chicago ?", "type": "qcm", "options": ["Kobe Bryant", "Shaquille O'Neal", "Michael Jordan", "LeBron James"], "correct": [2], "points": 150}, {"text": "En quelle année est sorti le film 'Titanic' de James Cameron ?", "type": "qcm", "options": ["1996", "1997", "1998", "1999"], "correct": [1], "points": 200}, {"text": "Quel est le vrai nom de Tupac Shakur ?", "type": "qcm", "options": ["Lesane Parish Crooks", "Tupac Amaru Shakur", "Makaveli Jones", "Khalid Walker"], "correct": [0], "points": 200}, {"text": "Quelle console Nintendo a introduit les joysticks analogiques en 1996 ?", "type": "qcm", "options": ["SNES", "Game Boy", "Nintendo 64", "GameCube"], "correct": [2], "points": 200}], "rap": [{"text": "Quel rappeur français a sorti 'JVLIVS' ?", "type": "qcm", "options": ["Ninho", "SCH", "Nekfeu", "Jul"], "correct": [1], "points": 100}, {"text": "Dans quel pays est né le rap ?", "type": "qcm", "options": ["France", "Jamaïque", "USA", "UK"], "correct": [2], "points": 100}, {"text": "Quel rappeur s'appelle Aubrey Graham de son vrai nom ?", "type": "qcm", "options": ["Jay-Z", "Kanye West", "Drake", "Kendrick Lamar"], "correct": [2], "points": 100}, {"text": "Quel rappeur français est surnommé 'NI' ?", "type": "qcm", "options": ["SCH", "Ninho", "Nekfeu", "Freeze Corleone"], "correct": [1], "points": 100}, {"text": "Quel rappeur US a sorti 'God's Plan' ?", "type": "qcm", "options": ["Travis Scott", "Post Malone", "Drake", "Lil Wayne"], "correct": [2], "points": 100}, {"text": "Dans quel quartier de New York est né le hip-hop ?", "type": "qcm", "options": ["Brooklyn", "Harlem", "Bronx", "Queens"], "correct": [2], "points": 100}, {"text": "Quel rappeur s'est battu en diss tracks contre Kendrick Lamar en 2024 ?", "type": "qcm", "options": ["J. Cole", "Drake", "Travis Scott", "21 Savage"], "correct": [1], "points": 100}, {"text": "Quel est le vrai nom de Kendrick Lamar ?", "type": "qcm", "options": ["Kendrick Lamar Duckworth", "Kendrick Carter", "Kendrick Brown", "Kendrick Williams"], "correct": [0], "points": 150}, {"text": "Quel album de Kanye West a été élu meilleur des années 2000 par Rolling Stone ?", "type": "qcm", "options": ["Graduation", "Late Registration", "MBDTF", "The College Dropout"], "correct": [3], "points": 150}, {"text": "Quel rappeur français a sorti 'GOAT' en 2023 ?", "type": "qcm", "options": ["Ninho", "Jul", "SCH", "Gazo"], "correct": [0], "points": 150}, {"text": "Quel est le vrai prénom de Booba ?", "type": "qcm", "options": ["Elie", "Renaud", "Kopp", "Omar"], "correct": [1], "points": 150}, {"text": "Quel rappeur a fondé le label Death Row Records ?", "type": "qcm", "options": ["Dr. Dre", "Suge Knight", "Snoop Dogg", "Ice Cube"], "correct": [1], "points": 150}, {"text": "Quel est le vrai nom de Jay-Z ?", "type": "qcm", "options": ["Shawn Corey Carter", "James Carter", "Shawn Brown", "Corey Jay"], "correct": [0], "points": 200}, {"text": "En quelle année Tupac a-t-il été assassiné ?", "type": "qcm", "options": ["1995", "1996", "1997", "1998"], "correct": [1], "points": 200}, {"text": "Quel rappeur français a sorti 'Les dernières volontés de Mozart' ?", "type": "qcm", "options": ["Booba", "Rohff", "Oxmo Puccino", "Rim-K"], "correct": [0], "points": 200}], "films_series": [{"text": "Dans quel film voit-on le personnage de Jack Sparrow ?", "type": "qcm", "options": ["Pirates des Caraïbes", "Pirates !", "La Malédiction", "Jolly Roger"], "correct": [0], "points": 100}, {"text": "Qui joue Iron Man dans le MCU ?", "type": "qcm", "options": ["Chris Evans", "Chris Hemsworth", "Robert Downey Jr.", "Mark Ruffalo"], "correct": [2], "points": 100}, {"text": "Dans quelle série voit-on Walter White ?", "type": "qcm", "options": ["Narcos", "Ozark", "Breaking Bad", "Better Call Saul"], "correct": [2], "points": 100}, {"text": "Quel acteur joue Harry Potter dans les films ?", "type": "qcm", "options": ["Rupert Grint", "Tom Felton", "Daniel Radcliffe", "Freddie Stroma"], "correct": [2], "points": 100}, {"text": "Dans Avengers, qui dit 'I am Groot' ?", "type": "qcm", "options": ["Rocket", "Star-Lord", "Groot", "Drax"], "correct": [2], "points": 100}, {"text": "Quel est le vrai nom de Batman ?", "type": "qcm", "options": ["Clark Kent", "Peter Parker", "Bruce Wayne", "Tony Stark"], "correct": [2], "points": 100}, {"text": "Dans quelle série retrouve-t-on Ross et Rachel ?", "type": "qcm", "options": ["How I Met Your Mother", "The Office", "Friends", "Seinfeld"], "correct": [2], "points": 100}, {"text": "Quel réalisateur a fait Inception et Interstellar ?", "type": "qcm", "options": ["Spielberg", "James Cameron", "Christopher Nolan", "Denis Villeneuve"], "correct": [2], "points": 150}, {"text": "Dans Game of Thrones, quelle famille possède Drogon ?", "type": "qcm", "options": ["Stark", "Lannister", "Baratheon", "Targaryen"], "correct": [3], "points": 150}, {"text": "Dans La Casa de Papel, quel est le vrai nom du Professeur ?", "type": "qcm", "options": ["Sergio Marquina", "Andrés de Fonollosa", "Álvaro Morte", "Salvador Martí"], "correct": [0], "points": 150}, {"text": "Quel film de 2019 a remporté l'Oscar du meilleur film ?", "type": "qcm", "options": ["1917", "The Irishman", "Once Upon a Time in Hollywood", "Parasite"], "correct": [3], "points": 150}, {"text": "Dans Stranger Things, quel est le nom du monstre de la saison 1 ?", "type": "qcm", "options": ["Mind Flayer", "Demogorgon", "Vecna", "Demodogs"], "correct": [1], "points": 150}, {"text": "Quel acteur a joué le Joker dans 'The Dark Knight' ?", "type": "qcm", "options": ["Jared Leto", "Joaquin Phoenix", "Heath Ledger", "Jack Nicholson"], "correct": [2], "points": 200}, {"text": "En quelle année est sorti le premier Star Wars ?", "type": "qcm", "options": ["1975", "1977", "1979", "1980"], "correct": [1], "points": 200}, {"text": "Quel film a lancé le concept de 'Cinematic Universe' moderne ?", "type": "qcm", "options": ["X-Men", "Iron Man", "Batman Begins", "Spider-Man"], "correct": [1], "points": 200}]};
+
+const THEMES_CONFIG = {
+  anime:       {label:'Animé/Manga 🎌', emoji:'🎌'},
+  jeux_video:  {label:'Jeux Vidéo 🎮',  emoji:'🎮'},
+  football:    {label:'Sports/Foot ⚽',  emoji:'⚽'},
+  culture_g:   {label:'Culture G 🧠',   emoji:'🧠'},
+  culture_web: {label:'Culture Web 💻', emoji:'💻'},
+  annees90_2000:{label:'Années 90/2000 📼',emoji:'📼'},
+  rap:         {label:'Rap FR/US 🎵',   emoji:'🎵'},
+  films_series:{label:'Films & Séries 🎬',emoji:'🎬'},
+};
+
+function openThemesModal(){
+  const modal=document.getElementById('themes-modal');
+  if(modal)modal.style.display='flex';
+  renderThemesModal();
+}
+
+function closeThemesModal(){
+  const modal=document.getElementById('themes-modal');
+  if(modal)modal.style.display='none';
+}
+
+let _selectedThemes=[];
+let _selectedCount=10;
+let _mixMode=false;
+
+function renderThemesModal(){
+  _selectedThemes=[];
+  _mixMode=false;
+  const list=document.getElementById('themes-list');
+  if(!list)return;
+  list.innerHTML=Object.entries(THEMES_CONFIG).map(([k,v])=>
+    `<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s2);border-radius:var(--r);cursor:pointer;border:2px solid var(--border);transition:all .2s" id="theme-card-${k}">
+      <input type="checkbox" id="theme-cb-${k}" onchange="toggleTheme('${k}')" style="width:16px;height:16px;accent-color:var(--accent)">
+      <span style="font-size:22px">${v.emoji}</span>
+      <span style="font-weight:500;font-size:14px">${v.label}</span>
+      <span class="tm" style="font-size:11px;margin-left:auto">${QUESTIONS_DB[k].length} questions</span>
+    </label>`
+  ).join('')+
+  `<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--adim);border-radius:var(--r);cursor:pointer;border:2px solid var(--accent);transition:all .2s" id="theme-card-mix">
+    <input type="checkbox" id="theme-cb-mix" onchange="toggleMix()" style="width:16px;height:16px;accent-color:var(--accent)">
+    <span style="font-size:22px">🔀</span>
+    <span style="font-weight:500;font-size:14px">Mélange de tout !</span>
+    <span class="tm" style="font-size:11px;margin-left:auto">5 questions/thème</span>
+  </label>`;
+}
+
+function toggleTheme(key){
+  const cb=document.getElementById('theme-cb-'+key);
+  const card=document.getElementById('theme-card-'+key);
+  if(cb.checked){
+    _selectedThemes.push(key);
+    card.style.borderColor='var(--accent)';
+    card.style.background='var(--adim)';
+    // Uncheck mix mode
+    const mixCb=document.getElementById('theme-cb-mix');
+    if(mixCb)mixCb.checked=false;
+    _mixMode=false;
+    document.getElementById('theme-card-mix').style.borderColor='var(--border)';
+    document.getElementById('theme-card-mix').style.background='var(--s2)';
+  } else {
+    _selectedThemes=_selectedThemes.filter(t=>t!==key);
+    card.style.borderColor='var(--border)';
+    card.style.background='var(--s2)';
+  }
+  updateThemesPreview();
+}
+
+function toggleMix(){
+  const cb=document.getElementById('theme-cb-mix');
+  _mixMode=cb.checked;
+  if(_mixMode){
+    // Uncheck all individual themes
+    Object.keys(THEMES_CONFIG).forEach(k=>{
+      const c=document.getElementById('theme-cb-'+k);
+      if(c)c.checked=false;
+      const card=document.getElementById('theme-card-'+k);
+      if(card){card.style.borderColor='var(--border)';card.style.background='var(--s2)';}
+    });
+    _selectedThemes=Object.keys(THEMES_CONFIG);
+    _selectedCount=40;
+    document.getElementById('count-select').value='40';
+    document.getElementById('theme-card-mix').style.borderColor='var(--accent)';
+    document.getElementById('theme-card-mix').style.background='var(--adim2)';
+  } else {
+    _selectedThemes=[];
+    document.getElementById('theme-card-mix').style.borderColor='var(--border)';
+    document.getElementById('theme-card-mix').style.background='var(--s2)';
+  }
+  updateThemesPreview();
+}
+
+function updateThemesPreview(){
+  const preview=document.getElementById('themes-preview');
+  if(!preview)return;
+  if(_selectedThemes.length===0){preview.textContent='Sélectionne au moins un thème';return;}
+  const total=_mixMode?40:Math.min(_selectedCount,_selectedThemes.reduce((s,t)=>s+QUESTIONS_DB[t].length,0));
+  preview.textContent=`✓ ${total} questions · ${_selectedThemes.length} thème(s)`;
+}
+
+function loadThemeQuestions(){
+  if(_selectedThemes.length===0){notify('Sélectionne au moins un thème !','error');return;}
+  let pool=[];
+  if(_mixMode){
+    // 5 questions per theme, mix of difficulties
+    Object.keys(QUESTIONS_DB).forEach(k=>{
+      const qs=QUESTIONS_DB[k];
+      const easy=qs.filter(q=>q.points===100);
+      const med=qs.filter(q=>q.points===150);
+      const hard=qs.filter(q=>q.points===200);
+      const pick=(arr,n)=>arr.sort(()=>Math.random()-.5).slice(0,n);
+      pool.push(...pick(easy,2),...pick(med,2),...pick(hard,1));
+    });
+  } else {
+    const perTheme=Math.ceil(_selectedCount/_selectedThemes.length);
+    _selectedThemes.forEach(k=>{
+      const qs=[...QUESTIONS_DB[k]].sort(()=>Math.random()-.5);
+      pool.push(...qs.slice(0,perTheme));
+    });
+    pool=pool.sort(()=>Math.random()-.5).slice(0,_selectedCount);
+  }
+  // Load into quiz builder
+  if(questions.length>0&&!confirm('Remplacer les questions actuelles ?'))return;
+  questions=pool.map((q,i)=>{
+    const id=Date.now()+i;
+    return {...q,id,text:q.text||'',mediaType:'none',mediaUrl:''};
+  });
+  renderQList();updateQCount();
+  closeThemesModal();
+  notify(questions.length+' questions chargées !','success');
+}
+
+</script>
+
+<!-- THEMES MODAL -->
+<div id="themes-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;padding:16px">
+  <div class="card" style="max-width:520px;width:100%;max-height:90vh;overflow-y:auto;padding:0">
+    <div class="modal-hdr flex jb ac" style="padding:16px 20px 12px">
+      <div style="font-size:16px;font-weight:700">📚 Choisir un thème</div>
+      <button class="btn btn-sm" onclick="closeThemesModal()">✕</button>
+    </div>
+    <div style="padding:0 20px 8px">
+      <div id="themes-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+      <div class="flex gap8 ac mb12">
+        <label style="font-size:13px;font-weight:500;white-space:nowrap">Nb de questions :</label>
+        <select id="count-select" onchange="_selectedCount=parseInt(this.value);updateThemesPreview()" style="flex:1">
+          <option value="10">10 questions</option>
+          <option value="20">20 questions</option>
+          <option value="30">30 questions</option>
+          <option value="40">40 questions</option>
+          <option value="50">50 questions</option>
+        </select>
+      </div>
+      <div id="themes-preview" class="tm tc mb12" style="font-size:12px">Sélectionne au moins un thème</div>
+      <button class="btn btn-primary" style="width:100%;padding:12px" onclick="loadThemeQuestions()">🚀 Charger ces questions</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
